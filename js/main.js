@@ -1,9 +1,9 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=1';
-import { charSVG, MONSTERS, BOSSES, monsterSVG } from './characters.js?v=1';
-import { sceneSVG, battleScene } from './scenes.js?v=1';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=1';
-import { pickStages } from './questions.js?v=1';
-import { t, getLang, num, monsterName, stageTitle } from './i18n.js?v=1';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=2';
+import { charSVG, MONSTERS, BOSSES, monsterSVG } from './characters.js?v=2';
+import { sceneSVG, battleScene } from './scenes.js?v=2';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=2';
+import { pickStages } from './questions.js?v=2';
+import { t, getLang, num, monsterName, stageTitle } from './i18n.js?v=2';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -152,7 +152,7 @@ function showSettings() {
   m.innerHTML = `<div class="mbox"><h3>${t('settings')}</h3>
     <div class="mrow"><span>${t('langLabel')}</span><button class="mbtn half ${L === 'zh' ? 'sel' : ''}" data-l="zh">繁體中文</button><button class="mbtn half ${L === 'en' ? 'sel' : ''}" data-l="en">English</button></div>
     <button class="mbtn" id="vo">${t('voice', state.settings.voice)}</button>
-    <button class="mbtn" id="tv">${t('testVoice')}</button><div class="mnote" id="tvr"></div>
+    <button class="mbtn" id="tv">${t('testVoice')}</button><div class="mnote" id="tvr">${t('voiceTip')}</div>
     <button class="mbtn danger" id="rs">${t('reset')}</button>
     <button class="mbtn ok" id="cl">${t('close')}</button></div>`;
   stage.appendChild(m);
@@ -165,7 +165,8 @@ function showSettings() {
     await speak(t('testSay'));
     state.settings.voice = was;
     const info = voiceInfo();
-    r.textContent = (info.started ? t('voiceOk') : t('voiceBad')) + `（${info.count} voices${info.zh ? ' · ' + info.zh : ''}）`;
+    const vn = info[getLang()];
+    r.textContent = (info.started ? t('voiceOk') : t('voiceBad')) + (vn ? ` · ${vn}` : '');
   };
   let armed = false;
   m.querySelector('#rs').onclick = (e) => {

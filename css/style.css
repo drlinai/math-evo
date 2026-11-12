@@ -300,3 +300,10 @@ html[lang=en] .coin i::before { content: '$'; font-size: .5em; vertical-align: .
 html[lang=en] .paybtn { font-size: 50px; }
 
 .mnote { min-height: 26px; margin-top: 8px; font-size: 19px; color: #5a4f78; }
+
+/* 設定視窗：內容變多後收緊間距，確保整個視窗都在畫面內 */
+.mbox { padding: 20px 26px 22px; }
+.mbox h3 { font-size: 38px; margin-bottom: 8px; }
+.mbox .mbtn { margin-top: 10px; padding: 10px; font-size: 26px; }
+.mbox .mbtn.half { margin-top: 0; padding: 9px 6px; }
+.mnote { min-height: 22px; margin-top: 6px; font-size: 17px; line-height: 1.3; }

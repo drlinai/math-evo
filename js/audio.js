@@ -1,17 +1,18 @@
 // 語音（瀏覽器內建 zh-TW）、音效與背景音樂（WebAudio 合成，不需音檔）
-import { state, save } from './state.js?v=1';
-import { getLang } from './i18n.js?v=1';
+import { state, save } from './state.js?v=2';
+import { getLang } from './i18n.js?v=2';
+import { chooseVoice } from './voices.js?v=2';
 
 let ctx = null, musicTimer = null, musicStep = 0, master = null;
 const voices = { zh: null, en: null };
 let currentUtter = null; // 保留參照，避免 Safari 把語音物件回收而收不到結束事件
 let everStarted = false; // 這次開啟後，語音是否真的開始唸過
 
+let remoteOk = true; // 線上語音（Google / Edge）這次能不能用；失敗過就改用裝置內建的
 function pickVoice() {
   const vs = window.speechSynthesis?.getVoices() ?? [];
-  const norm = (v) => v.lang.replace('_', '-');
-  voices.zh = vs.find((v) => norm(v) === 'zh-TW' && /Mei|美佳/.test(v.name)) || vs.find((v) => norm(v) === 'zh-TW') || vs.find((v) => norm(v).startsWith('zh')) || null;
-  voices.en = vs.find((v) => norm(v) === 'en-US' && /Samantha/.test(v.name)) || vs.find((v) => norm(v) === 'en-US') || vs.find((v) => norm(v).startsWith('en')) || null;
+  voices.zh = chooseVoice(vs, 'zh', remoteOk);
+  voices.en = chooseVoice(vs, 'en', remoteOk);
 }
 
 export function unlockAudio() {
@@ -41,8 +42,8 @@ export function speak(text, { rate } = {}) {
       const u = new SpeechSynthesisUtterance(text);
       if (voices[lang]) u.voice = voices[lang];
       u.lang = lang === 'en' ? 'en-US' : 'zh-TW';
-      u.rate = rate ?? (lang === 'en' ? 0.9 : 0.92);
-      u.pitch = 1.1;
+      u.rate = rate ?? (lang === 'en' ? 0.92 : 0.95);
+      u.pitch = 1; // 用聲音原本的音調最自然（之前調高到 1.1 會有機械感）
       let done = false, started = false, t1 = 0, t2 = 0, poll = 0;
       const fin = () => { if (done) return; done = true; clearTimeout(t1); clearTimeout(t2); clearInterval(poll); if (currentUtter === u) currentUtter = null; resolve(); };
       u.onstart = () => { started = true; everStarted = true; };
@@ -52,7 +53,12 @@ export function speak(text, { rate } = {}) {
       // 有開始唸 → 一定等到唸完（onend 沒來時，用「已不在講話」當備援判斷）
       poll = setInterval(() => { if (started && !synth.speaking && !synth.pending) fin(); }, 300);
       // 3.5 秒都沒開始唸 → 這台裝置的語音不能用，直接放行（之前只等 0.6 秒，iPad 起音慢會被誤判而切斷）
-      t1 = setTimeout(() => { if (!started) fin(); }, 3500);
+      t1 = setTimeout(() => {
+        if (started) return;
+        // 線上語音沒反應（例如沒網路）→ 這次改用裝置內建語音
+        if (u.voice && u.voice.localService === false) { remoteOk = false; pickVoice(); }
+        fin();
+      }, 3500);
       // 保險上限：依字數估計，給得很寬鬆
       t2 = setTimeout(fin, 6000 + text.length * (lang === 'en' ? 130 : 450));
     };

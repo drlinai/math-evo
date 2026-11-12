@@ -1,6 +1,6 @@
 // 存檔、等級經驗、升級卡池
-import { LINES, formOf } from './characters.js?v=1';
-import { setLang, detectLang, formNameOf, upText } from './i18n.js?v=1';
+import { LINES, formOf } from './characters.js?v=2';
+import { setLang, detectLang, formNameOf, upText } from './i18n.js?v=2';
 
 const KEY = 'math-evo-save-v1';
 export const CHAR_IDS = ['dino', 'sea', 'boy'];
