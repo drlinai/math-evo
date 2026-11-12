@@ -1,5 +1,52 @@
 // 角色向量美術：三條進化線 × 4 型態 + 通用升級外觀（盔甲/披風/皇冠/翅膀/光環/元素/夥伴）+ 邪惡怪物
-const OUT = '#2b2140';
+let OUT = '#2b2140';
+
+// ---- 畫風（flat＝扁平貼紙；toy＝3D 軟膠公仔；cel＝精緻卡通雙層陰影；book＝繪本手繪）----
+const STYLES = {
+  flat: { out: '#2b2140', k: 1, fx: '', whole: '' },
+  toy: { out: '#3b2a3a', k: 0, fx: 'filter="url(#fx-toy)"', whole: 'filter="url(#fx-toyshadow)"' },
+  cel: { out: '#3a2444', k: 0.62, fx: 'filter="url(#fx-cel)"', whole: '' },
+  book: { out: '#5b3b2e', k: 0.6, fx: 'filter="url(#fx-bookfill)"', whole: 'filter="url(#fx-book)"' },
+};
+let ST = STYLES.flat;
+export function setArtStyle(n) { ST = STYLES[n] || STYLES.flat; OUT = ST.out; }
+const FX_DEFS = `<defs>
+<filter id="fx-toy" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="b"/>
+  <feDiffuseLighting in="b" surfaceScale="8" diffuseConstant="1.1" lighting-color="#ffffff" result="d"><feDistantLight azimuth="225" elevation="52"/></feDiffuseLighting>
+  <feComposite in="d" in2="SourceGraphic" operator="arithmetic" k1="1" k2="0" k3="0.14" k4="0" result="lit"/>
+  <feColorMatrix in="lit" type="saturate" values="1.35" result="lit2"/>
+  <feSpecularLighting in="b" surfaceScale="8" specularConstant="0.62" specularExponent="64" lighting-color="#ffffff" result="sp"><feDistantLight azimuth="225" elevation="60"/></feSpecularLighting>
+  <feMorphology in="SourceAlpha" operator="erode" radius="2.4" result="er"/>
+  <feComposite in="SourceAlpha" in2="er" operator="out" result="rim"/>
+  <feGaussianBlur in="rim" stdDeviation="1.3" result="rimb"/>
+  <feFlood flood-color="#3a1408" flood-opacity=".42" result="rc"/><feComposite in="rc" in2="rimb" operator="in" result="rimc"/>
+  <feMerge result="m"><feMergeNode in="lit2"/><feMergeNode in="rimc"/><feMergeNode in="sp"/></feMerge>
+  <feComposite in="m" in2="SourceAlpha" operator="in"/>
+</filter>
+<filter id="fx-toyshadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity=".22"/></filter>
+<filter id="fx-cel" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+  <feOffset in="SourceAlpha" dx="-9" dy="-11" result="o1"/>
+  <feComposite in="SourceAlpha" in2="o1" operator="out" result="sh"/>
+  <feFlood flood-color="#2a0f3a" flood-opacity=".2" result="f1"/><feComposite in="f1" in2="sh" operator="in" result="shade"/>
+  <feOffset in="SourceAlpha" dx="7" dy="9" result="o2"/>
+  <feComposite in="SourceAlpha" in2="o2" operator="out" result="hl"/>
+  <feFlood flood-color="#ffffff" flood-opacity=".3" result="f2"/><feComposite in="f2" in2="hl" operator="in" result="hi"/>
+  <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shade"/><feMergeNode in="hi"/></feMerge>
+</filter>
+<filter id="fx-bookfill" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="7" result="n"/>
+  <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.05" result="na"/>
+  <feFlood flood-color="#fff" flood-opacity=".42" result="w"/><feComposite in="w" in2="na" operator="in" result="wash"/>
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="g"/>
+  <feColorMatrix in="g" type="matrix" values="0 0 0 0 0.25  0 0 0 0 0.15  0 0 0 0 0.1  0 0 0 0.9 -0.42" result="grain"/>
+  <feMerge result="m"><feMergeNode in="SourceGraphic"/><feMergeNode in="wash"/><feMergeNode in="grain"/></feMerge>
+  <feComposite in="m" in2="SourceAlpha" operator="in"/>
+</filter>
+<filter id="fx-book" x="-10%" y="-10%" width="120%" height="120%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="11" result="t"/>
+  <feDisplacementMap in="SourceGraphic" in2="t" scale="7" xChannelSelector="R" yChannelSelector="G"/>
+</filter></defs>`;
 let UID = 0;
 
 // ---------- SVG 小工具 ----------
@@ -8,12 +55,12 @@ const C = (cx, cy, r) => `<circle cx="${cx}" cy="${cy}" r="${r}"/>`;
 const P = (d) => `<path d="${d}"/>`;
 const R = (x, y, w, h, r = 8) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"/>`;
 // 聯集外框：先畫粗黑邊再蓋上填色，多個形狀會融合成一個輪廓
-const U = (shapes, fill, sw = 6) => `<g stroke="${OUT}" stroke-width="${sw * 2}" stroke-linejoin="round" stroke-linecap="round" fill="${OUT}">${shapes}</g><g fill="${fill}">${shapes}</g>`;
+const U = (shapes, fill, sw = 6) => (ST.k ? `<g stroke="${OUT}" stroke-width="${sw * 2 * ST.k}" stroke-linejoin="round" stroke-linecap="round" fill="${OUT}">${shapes}</g>` : '') + `<g fill="${fill}" ${ST.fx}>${shapes}</g>`;
 const F = (shapes, fill, op = 1) => `<g fill="${fill}"${op < 1 ? ` opacity="${op}"` : ''}>${shapes}</g>`;
 const L = (d, w = 4, col = OUT) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const tri = (x, y, rot, b, h) => `<path d="M${-b / 2},0 L0,${-h} L${b / 2},0 Z" transform="translate(${x},${y}) rotate(${rot})"/>`;
 // 管狀身體（粗線條 + 外框）
-const tube = (d, w, col) => `<path d="${d}" stroke="${OUT}" stroke-width="${w + 12}" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="${d}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+const tube = (d, w, col) => (ST.k ? `<path d="${d}" stroke="${OUT}" stroke-width="${w + 12 * ST.k}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>` : '') + `<path d="${d}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" fill="none" ${ST.fx}/>`;
 const tubeIn = (d, w, col, extra = '') => `<path d="${d}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" fill="none" ${extra}/>`;
 const star = (cx, cy, r) => {
   let d = '';
@@ -216,7 +263,7 @@ function drawSea(form, up, uid) {
     s += U(P('M-108,-22 q-30,-26 -40,-4 q14,2 12,18 q14,-2 28,-14 z'), c.fin, 5);
     s += tube(d, 46, c.main) + tubeIn(d, 46, c.dark, 'stroke-dasharray="6 30" opacity=".55"') + tubeIn(d, 16, '#fff', 'opacity=".22"');
     s += serpentHead(44, -138, 76, 52, c, 0, w);
-    return { s, A: { head: { cx: 44, cy: -138, rx: 76, ry: 52 }, chest: { cx: 36, cy: -62, w: 40, h: 36 }, back: { x: 4, y: -70 }, top: -190, view: 'side', H: 200 } };
+    return { s, A: { head: { cx: 44, cy: -138, rx: 76, ry: 52 }, chest: { cx: 36, cy: -62, w: 40, h: 36 }, back: { x: 4, y: -70 }, top: -190, view: "side", H: 200, helmetFrac: 0.8 } };
   }
   const d = form === 1
     ? 'M-196,-24 Q-166,-96 -116,-42 Q-78,6 -36,-52 Q-4,-100 18,-58 Q34,-24 50,-84 Q60,-150 48,-190'
@@ -245,14 +292,17 @@ function drawSea(form, up, uid) {
   if (form === 3) s += U(tri(hx - 40, hy - 44, -22, 20, 36) + tri(hx, hy - 52, 0, 22, 50) + tri(hx + 40, hy - 44, 22, 20, 36), GOLD, 5) + F(C(hx, hy - 60, 6), '#ff5a8a');
   s += serpentHead(hx, hy, hrx, hry, c, form, w);
   if (form >= 2) s += L(`M${hx - hrx * 0.7},${hy + hry * 0.5} q-22,18 -14,40`, 4) + L(`M${hx + hrx * 0.7},${hy + hry * 0.5} q22,18 14,40`, 4);
-  return { s, A: { head: { cx: hx, cy: hy, rx: hrx, ry: hry }, chest: { cx: 50, cy: hy + 96, w: 44, h: 44 }, back: { x: 26, y: hy + 70 }, top: hy - hry - (form === 3 ? 50 : 2), view: 'side', H: -hy + hry + (form === 3 ? 50 : 0) } };
+  return { s, A: { head: { cx: hx, cy: hy, rx: hrx, ry: hry }, chest: { cx: 50, cy: hy + 96, w: 44, h: 44 }, back: { x: 26, y: hy + 70 }, top: hy - hry - (form === 3 ? 50 : 2), view: "side", helmetFrac: 0.8, H: -hy + hry + (form === 3 ? 50 : 0) } };
 }
 
 // =====================================================================
 //  男孩線（正面 Q 版）
 // =====================================================================
 const SKIN = '#ffd9b3', HAIR = '#7a4a21';
-const cap = (x1, y1, x2, y2, w, col) => `<path d="M${x1},${y1} L${x2},${y2}" stroke="${OUT}" stroke-width="${w + 11}" stroke-linecap="round" fill="none"/><path d="M${x1},${y1} L${x2},${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" fill="none"/>`;
+const cap = (x1, y1, x2, y2, w, col) => (ST.k ? `<path d="M${x1},${y1} L${x2},${y2}" stroke="${OUT}" stroke-width="${w + 11 * ST.k}" stroke-linecap="round" fill="none"/>` : '') + (ST.fx
+  // 直線的外框盒寬度為 0 會讓濾鏡失效，補一個透明矩形撐開範圍
+  ? `<g ${ST.fx}><path d="M${x1},${y1} L${x2},${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" fill="none"/><rect x="${Math.min(x1, x2) - w}" y="${Math.min(y1, y2) - w}" width="${Math.abs(x2 - x1) + 2 * w}" height="${Math.abs(y2 - y1) + 2 * w}" fill="none"/></g>`
+  : `<path d="M${x1},${y1} L${x2},${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" fill="none"/>`);
 
 function sword(x, y, ang, len, o) {
   const bw = o.bw || 13;
@@ -356,7 +406,7 @@ function armorOv(t, A, uid) {
   s += U(P(d), m.a, 5) + F(P(`M${cx},${cy - h / 2 - 4} L${cx + w / 2},${cy - h / 2} L${cx + w / 2},${cy + h * 0.08} Q${cx + w * 0.42},${cy + h * 0.52} ${cx},${cy + h * 0.62} Z`), '#000', 0.12);
   s += F(star(cx, cy - h * 0.02, h * 0.24), m.t);
   // 頭盔：蓋住頭頂
-  const id = 'ah' + uid, frac = 0.5, yy = hd.cy - hd.ry * frac;
+  const id = "ah" + uid, frac = A.helmetFrac ?? 0.5, yy = hd.cy - hd.ry * frac;
   s += `<clipPath id="${id}"><rect x="${hd.cx - hd.rx - 16}" y="${hd.cy - hd.ry - 18}" width="${hd.rx * 2 + 32}" height="${hd.ry * (1 - frac) + 18}"/></clipPath>`;
   s += `<g clip-path="url(#${id})">` + U(E(hd.cx, hd.cy, hd.rx + 5, hd.ry + 5), m.a, 4) + F(E(hd.cx - hd.rx * 0.35, hd.cy - hd.ry * 0.72, hd.rx * 0.3, hd.ry * 0.14, -12), '#fff', 0.5) + `</g>`;
   const xw = (hd.rx + 5) * Math.sqrt(Math.max(0, 1 - Math.pow((hd.ry * frac) / (hd.ry + 5), 2)));
@@ -463,7 +513,8 @@ export function charSVG(id, ch, o = {}) {
   let s = `<svg viewBox="${vb}" class="char-svg${o.cls ? ' ' + o.cls : ''}" xmlns="http://www.w3.org/2000/svg" overflow="visible">`;
   s += auraOv(up.aura || 0, X, cy, Hpx, uid);
   s += `<ellipse cx="${X}" cy="${Y + 4}" rx="${120 * sx}" ry="${16 * sx}" fill="rgba(0,0,0,.22)"/>`;
-  s += `<g class="idle" style="transform-origin:${X}px ${Y}px"><g transform="translate(${X},${Y}) scale(${sx.toFixed(3)},${sy.toFixed(3)})">`;
+  if (ST !== STYLES.flat) s += FX_DEFS;
+  s += `<g class="idle" style="transform-origin:${X}px ${Y}px"><g transform="translate(${X},${Y}) scale(${sx.toFixed(3)},${sy.toFixed(3)})" ${ST.whole}>`;
   s += wingsOv(up.wings || 0, A) + capeOv(up.cape || 0, A) + rig.s + armorOv(up.armor || 0, A, uid) + crownOv(up.crown || 0, A, hasHelmet);
   s += `</g></g>`;
   s += orbitOv(up, X, cy, Hpx) + petOv(up.pet || 0, X, Y);

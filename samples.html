@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<title>畫風樣張</title>
+<link rel="stylesheet" href="css/style.css" />
+<style>
+  html, body { overflow: auto; background: #f4efe6; height: auto; }
+  h1 { font-size: 30px; padding: 16px 24px 0; }
+  .row { display: grid; grid-template-columns: 170px repeat(4, 1fr); align-items: center; border-bottom: 3px dashed #cbbfae; padding: 6px 12px; }
+  .row h2 { font-size: 24px; line-height: 1.25; } .row h2 small { display: block; font-size: 15px; font-weight: 600; color: #7a6a58; margin-top: 4px; }
+  .cell { height: 250px; position: relative; }
+  .row.dark { background: linear-gradient(#7ec8ff, #c9efb0); }
+  body.one h1 { display: none; }
+  body.one .row { display: grid; grid-template-columns: 1fr 1fr; border: none; padding: 0 10px; background: linear-gradient(#bfe6ff 0, #e9f7d8 70%, #cfe9b0 100%); }
+  body.one .row h2 { grid-column: 1 / 3; font-size: 34px; padding: 14px 10px 0; } body.one .row h2 small { font-size: 20px; display: inline; margin-left: 12px; }
+  body.one .cell { height: 370px; }
+</style>
+</head>
+<body>
+<h1>畫風樣張（同一批角色、四種畫法）</h1>
+<div id="out"></div>
+<script type="module">
+import { charSVG, setArtStyle, monsterSVG, MONSTERS } from './js/characters.js';
+const only = new URLSearchParams(location.search).get('s');
+if (only) document.body.classList.add('one');
+const styles = [
+  ['flat', 'A 扁平貼紙', '現在的畫法：粗黑邊、純色'],
+  ['cel', 'B 精緻卡通', '細描邊＋亮面與陰影兩層'],
+  ['toy', 'C 3D 軟膠公仔', '無描邊、立體打光與高光'],
+  ['book', 'D 繪本手繪', '手繪抖動邊線＋水彩紙紋理'],
+].filter((x) => !only || x[0] === only);
+const up = { armor: 2, crown: 2, wings: 2, cape: 1, weapon: 2 };
+let h = '';
+for (const [id, name, desc] of styles) {
+  setArtStyle(id);
+  h += `<div class="row"><h2>${name}<small>${desc}</small></h2>` +
+    `<div class="cell">${charSVG('dino', { level: 1, up: {} }, { fit: true })}</div>` +
+    `<div class="cell">${charSVG('sea', { level: 1, up: {} }, { fit: true })}</div>` +
+    `<div class="cell">${charSVG('boy', { level: 1, up: {} }, { fit: true })}</div>` +
+    `<div class="cell">${charSVG('dino', { level: 10, up }, { fit: true })}</div></div>`;
+}
+setArtStyle('flat');
+document.getElementById('out').innerHTML = h;
+</script>
+</body>
+</html>

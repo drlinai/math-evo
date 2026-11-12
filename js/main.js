@@ -1,8 +1,9 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar } from './state.js';
-import { charSVG, LINES, formOf, MONSTERS, BOSSES, monsterSVG } from './characters.js';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js';
+import { charSVG, MONSTERS, BOSSES, monsterSVG } from './characters.js';
 import { sceneSVG, battleScene } from './scenes.js';
 import { speak, stopSpeak, sfx, unlockAudio, toggleMusic } from './audio.js';
-import { pickStages, zh } from './questions.js';
+import { pickStages } from './questions.js';
+import { t, getLang, num, monsterName, stageTitle } from './i18n.js';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -22,6 +23,12 @@ function screen(cls, html) {
   stopSpeak();
   stage.className = 'scr-' + cls;
   stage.innerHTML = html;
+}
+// 語音唸完之前先鎖住按鈕，避免還沒講完就被切到下一頁
+function gate(el, promise) {
+  if (!el) return;
+  el.classList.add('locked');
+  promise.then(() => el.classList.remove('locked'));
 }
 
 // ---- 版面縮放（邏輯尺寸 1024×768）----
@@ -72,15 +79,16 @@ function showTitle() {
   run++;
   const babies = CHAR_IDS.map((id, i) => `<div class="t-char" style="animation-delay:${-i * 0.3}s">${charSVG(id, { level: 1, up: {} }, { fit: true })}</div>`).join('');
   screen('title', `<div class="bg title-bg"></div><div class="stars"></div>
-    <h1 class="logo"><span>數學</span><span class="l2">進化獸</span></h1>
+    <h1 class="logo"><span>${t('title1')}</span><span class="l2">${t('title2')}</span></h1>
     <div class="t-row">${babies}</div>
-    <button class="bigbtn" id="go">開始冒險 ▶</button>
-    <button class="rbtn fsbtn" id="fs" aria-label="全螢幕">⛶</button>`);
+    <button class="bigbtn" id="go">${t('start')}</button>
+    <div class="t-tools"><button class="rbtn" id="lg">🌐<small>${getLang() === 'en' ? '中文' : 'English'}</small></button><button class="rbtn" id="fs">⛶</button></div>`);
   $('#go').onclick = () => {
     unlockAudio(); sfx.fanfare();
     state.current ? showHome() : showSelect();
   };
   $('#fs').onclick = toggleFS;
+  $('#lg').onclick = () => { sfx.tap(); chooseLang(getLang() === 'en' ? 'zh' : 'en'); showTitle(); };
 }
 
 // =====================================================================
@@ -93,15 +101,20 @@ function showSelect() {
     return `<button class="sel-card" data-id="${id}"><div class="sel-scene">${sceneSVG(id)}</div><div class="sel-char">${charSVG(id, ch, { fit: true })}</div>
       <div class="sel-name">${formName(id, ch.level)}</div><div class="sel-lv">Lv.${ch.level}</div></button>`;
   }).join('');
-  screen('select', `<div class="bg title-bg"></div><div class="stars"></div><h2 class="sel-title">選一個夥伴！</h2><div class="sel-row">${cards}</div>`);
-  speak('選一個夥伴，一起去冒險吧！');
+  screen('select', `<div class="bg title-bg"></div><div class="stars"></div><h2 class="sel-title">${t('pick')}</h2><div class="sel-row" id="selrow">${cards}</div>`);
+  speak(t('pickSay'));
+  let picked = false;
   stage.querySelectorAll('.sel-card').forEach((b) => {
-    b.onclick = () => {
+    b.onclick = async () => {
+      if (picked) return;
+      picked = true;
+      const my = run;
       sfx.star();
       state.current = b.dataset.id; save();
       b.classList.add('picked');
-      speak(`${formName(state.current, cur().level)}，出發！`);
-      setTimeout(showHome, 700);
+      await speak(t('go', formName(state.current, cur().level)));
+      await sleep(400);
+      if (my === run) showHome();
     };
   });
 }
@@ -113,16 +126,16 @@ function showHome() {
   run++;
   const id = state.current, ch = cur(), need = xpNeed(ch.level), pending = ch.xp >= need;
   const badges = UPGRADES.filter((u) => ch.up[u.id]).map((u) => { const i = upInfo(u, id); return `<span class="badge" style="--c:${u.color}">${i.icon}<b>${ch.up[u.id]}</b></span>`; }).join('');
-  const nextEvo = ch.level < 15 ? `再 ${5 - (ch.level % 5)} 級進化` : '最終型態';
+  const nextEvo = ch.level < 15 ? t('evoIn', 5 - (ch.level % 5)) : t('finalForm');
   screen('home', `<div class="bg">${sceneSVG(id)}</div>
-    <div class="topbar"><button class="rbtn" id="sw">🔄<small>換角色</small></button><span class="grow"></span>
+    <div class="topbar"><button class="rbtn" id="sw">🔄<small>${t('sw')}</small></button><span class="grow"></span>
       <button class="rbtn" id="mu">${state.settings.music ? '🎵' : '🔇'}</button><button class="rbtn" id="fs">⛶</button><button class="rbtn" id="st">⚙️</button></div>
     <div class="plate"><div class="lv">Lv.<b>${ch.level}</b></div><div class="nm">${formName(id, ch.level)}</div>
       <div class="xpbar"><i style="width:${Math.min(100, (ch.xp / need) * 100)}%"></i><span>${Math.min(ch.xp, need)} / ${need}</span></div>
-      <div class="sub"><span>⚡ 戰力 <b>${power(ch)}</b></span><span>🌟 ${nextEvo}</span></div></div>
+      <div class="sub"><span>⚡ ${t('power')} <b>${power(ch)}</b></span><span>🌟 ${nextEvo}</span></div></div>
     <div class="badges">${badges}</div>
     <div class="hero" id="hero">${charSVG(id, ch)}</div>
-    <button class="bigbtn ${pending ? 'gold' : ''}" id="start">${pending ? '✨ 升級！' : '開始任務 ▶'}</button>`);
+    <button class="bigbtn ${pending ? 'gold' : ''}" id="start">${pending ? t('levelup') : t('mission')}</button>`);
   $('#sw').onclick = () => { sfx.tap(); showSelect(); };
   $('#mu').onclick = (e) => { e.currentTarget.textContent = toggleMusic() ? '🎵' : '🔇'; };
   $('#fs').onclick = toggleFS;
@@ -135,15 +148,18 @@ function showSettings() {
   sfx.tap();
   const m = document.createElement('div');
   m.className = 'modal';
-  m.innerHTML = `<div class="mbox"><h3>設定</h3>
-    <button class="mbtn" id="vo">🗣️ 語音：${state.settings.voice ? '開' : '關'}</button>
-    <button class="mbtn danger" id="rs">♻️ 這個角色重新養成</button>
-    <button class="mbtn ok" id="cl">關閉</button></div>`;
+  const L = getLang();
+  m.innerHTML = `<div class="mbox"><h3>${t('settings')}</h3>
+    <div class="mrow"><span>${t('langLabel')}</span><button class="mbtn half ${L === 'zh' ? 'sel' : ''}" data-l="zh">繁體中文</button><button class="mbtn half ${L === 'en' ? 'sel' : ''}" data-l="en">English</button></div>
+    <button class="mbtn" id="vo">${t('voice', state.settings.voice)}</button>
+    <button class="mbtn danger" id="rs">${t('reset')}</button>
+    <button class="mbtn ok" id="cl">${t('close')}</button></div>`;
   stage.appendChild(m);
-  m.querySelector('#vo').onclick = (e) => { state.settings.voice = !state.settings.voice; save(); e.currentTarget.textContent = `🗣️ 語音：${state.settings.voice ? '開' : '關'}`; };
+  m.querySelectorAll('[data-l]').forEach((b) => { b.onclick = () => { sfx.tap(); chooseLang(b.dataset.l); showHome(); showSettings(); }; });
+  m.querySelector('#vo').onclick = (e) => { state.settings.voice = !state.settings.voice; save(); e.currentTarget.textContent = t('voice', state.settings.voice); };
   let armed = false;
   m.querySelector('#rs').onclick = (e) => {
-    if (!armed) { armed = true; e.currentTarget.textContent = '⚠️ 再按一次就會回到 Lv.1'; return; }
+    if (!armed) { armed = true; e.currentTarget.textContent = t('resetConfirm'); return; }
     resetChar(state.current); showHome();
   };
   m.querySelector('#cl').onclick = () => m.remove();
@@ -169,18 +185,19 @@ async function mission(w, chk) {
   $('#quit').onclick = () => { sfx.tap(); showHome(); };
 
   for (let si = 0; si < plan.length; si++) {
-    const st = plan[si];
+    const st = plan[si], title = stageTitle(st.id);
     stage.querySelectorAll('.sdot').forEach((d, i) => d.classList.toggle('on', i === si));
-    $('#ptext').innerHTML = ''; $('#qscene').innerHTML = ''; $('#answers').innerHTML = '';
-    await w(banner(`第 ${si + 1} 關`, `${st.icon} ${st.title}`, `第${zh(si + 1)}關，${st.title}！`));
+    $('#ptext').innerHTML = ''; $('#qscene').innerHTML = ''; $('#qscene').removeAttribute('data-bg'); $('#answers').innerHTML = '';
+    await w(banner(t('stageN', si + 1), `${st.icon} ${title}`, t('stageSay', si + 1, title)));
     for (let qi = 0; qi < PER_STAGE; qi++) {
-      $('#pips').innerHTML = Array.from({ length: PER_STAGE }, (_, k) => k).map((k) => `<i class="${k < qi ? 'done' : k === qi ? 'now' : ''}"></i>`).join('');
+      $('#pips').innerHTML = Array.from({ length: PER_STAGE }, (_, k) => `<i class="${k < qi ? 'done' : k === qi ? 'now' : ''}"></i>`).join('');
       const q = st.gen(ch.level, qi);
       const ok1 = await w(ask(q));
       total++; if (ok1) first++;
     }
     stage.querySelectorAll('.sdot')[si].classList.add('done');
     sfx.star();
+    await w(sleep(500));
   }
   // 結算
   const gain = first * 18 + (total - first) * 9 + 46; // 每組 6 題：全對 154、最少 100（Lv.1 一組必升級）
@@ -189,12 +206,14 @@ async function mission(w, chk) {
   if (ch.xp >= xpNeed(ch.level)) await levelUps(w, chk); else showHome();
 }
 
-function banner(top, main, say) {
+async function banner(top, main, say) {
   const b = $('#banner');
   b.innerHTML = `<small>${top}</small><b>${main}</b>`;
   b.classList.add('show');
   sfx.card();
-  return Promise.all([speak(say), sleep(1300)]).then(() => b.classList.remove('show'));
+  await Promise.all([speak(say), sleep(1600)]); // 等語音唸完（至少停 1.6 秒）
+  b.classList.remove('show');
+  await sleep(350);
 }
 
 function ask(q) {
@@ -203,7 +222,7 @@ function ask(q) {
     let tries = 0, locked = false;
     $('#ptext').innerHTML = q.prompt;
     scene.className = 'qscene';
-    q.render(scene);
+    q.render(scene, { priceTag: t('priceTag', q.answer), trayLabel: t('trayLabel'), walletLabel: t('walletLabel') });
     speak(q.say);
     $('#spk').onclick = () => speak(q.say);
 
@@ -215,14 +234,15 @@ function ask(q) {
       burst(512, 360, '⭐', 10);
       const eq = $('#eq');
       eq.textContent = q.eq; eq.classList.add('show');
-      await speak(`${pick(['答對了！', '好棒！', '太厲害了！', '你做到了！'])}${q.eqSay}`);
-      await sleep(450);
+      await speak(`${pick(t('praise'))} ${q.eqSay}`); // 等「答對了＋算式」唸完
+      await sleep(900);
       eq.classList.remove('show');
+      await sleep(350);
       resolve(tries === 0);
     };
 
     if (q.type === 'pay') {
-      ans.innerHTML = `<button class="ans paybtn" id="payok">付錢 ✓</button>`;
+      ans.innerHTML = `<button class="ans paybtn" id="payok">${t('pay')}</button>`;
       const tray = scene.querySelector('.traycoins'), wallet = scene.querySelector('.walletcoins'), sumEl = scene.querySelector('.traysum');
       const sum = () => [...tray.children].reduce((a, c) => a + +c.dataset.v, 0);
       scene.onclick = (e) => {
@@ -230,17 +250,17 @@ function ask(q) {
         if (!c || locked) return;
         sfx.coin();
         (c.parentElement === wallet ? tray : wallet).appendChild(c);
-        if (tries > 0) sumEl.textContent = `盤子裡有 ${sum()} 元`;
+        if (tries > 0) sumEl.textContent = t('traySum', sum());
       };
       $('#payok').onclick = () => {
         if (locked) return;
         const s = sum();
         if (s === q.answer) { scene.onclick = null; win($('#payok')); return; }
         tries++; sfx.wrong();
-        sumEl.textContent = `盤子裡有 ${s} 元`;
+        sumEl.textContent = t('traySum', s);
         scene.classList.add('shake'); setTimeout(() => scene.classList.remove('shake'), 400);
-        if (tries === 1) speak(s < q.answer ? `盤子裡有${zh(s)}元，還不夠喔，要付${zh(q.answer)}元！` : `盤子裡有${zh(s)}元，太多了，只要付${zh(q.answer)}元！`);
-        else speak(`${q.payHint}，試試看！`);
+        if (tries === 1) speak(s < q.answer ? t('payLow', s, q.answer) : t('payHigh', s, q.answer));
+        else speak(t('tryIt', q.payHint));
       };
       return;
     }
@@ -259,17 +279,18 @@ function ask(q) {
 
 // 答錯不懲罰：1 標數字 → 2 帶著數 → 3 亮出答案
 function hint(q, scene, ans, tries) {
+  q.onHint?.(scene);
   const els = q.countEls(scene);
   let acc = 0;
   els.forEach((el) => { acc += +(el.dataset.v || 1); el.querySelector('b').textContent = acc; el.classList.add('numbered'); });
-  if (tries === 1) { speak('再數數看！我幫你標上數字了。'); return; }
+  if (tries === 1) { speak(t('hint1')); return; }
   if (tries === 2) {
     const vals = []; acc = 0;
-    els.forEach((el, i) => { acc += +(el.dataset.v || 1); vals.push(zh(acc)); setTimeout(() => { el.classList.add('count'); sfx.pop(); }, 500 + i * 520); });
-    speak(`我們一起數：${vals.join('、')}。`, { rate: 0.78 });
+    els.forEach((el, i) => { acc += +(el.dataset.v || 1); vals.push(num(acc)); setTimeout(() => { el.classList.add('count'); sfx.pop(); }, 500 + i * 520); });
+    speak(t('hint2', vals), { rate: 0.78 });
     return;
   }
-  speak(`答案是${zh(q.answer)}，點亮亮的那個！`);
+  speak(t('hint3', q.answer));
   ans.querySelector(`.ans[data-v="${q.answer}"]`)?.classList.add('glowme');
 }
 
@@ -277,14 +298,14 @@ function result(first, total, gain) {
   const stars = first >= total - 1 ? 3 : first >= total - 3 ? 2 : 1;
   const ov = document.createElement('div');
   ov.className = 'overlay';
-  ov.innerHTML = `<div class="rbox"><h2>任務完成！</h2>
+  ov.innerHTML = `<div class="rbox"><h2>${t('done')}</h2>
     <div class="rstars">${[1, 2, 3].map((i) => `<span class="${i <= stars ? 'on' : ''}" style="animation-delay:${i * 0.25}s">⭐</span>`).join('')}</div>
-    <div class="rline">一次就答對 <b>${first}</b> / ${total} 題</div>
-    <div class="rxp">經驗值 <b>+${gain}</b></div>
-    <button class="bigbtn" id="rok">繼續 ▶</button></div>`;
+    <div class="rline">${t('firstTry', first, total)}</div>
+    <div class="rxp">${t('xp')} <b>+${gain}</b></div>
+    <button class="bigbtn" id="rok">${t('cont')}</button></div>`;
   stage.appendChild(ov);
   confetti(); sfx.fanfare();
-  speak(`任務完成！得到${gain}點經驗值！`);
+  gate(ov.querySelector('#rok'), speak(t('doneSay', gain)));
   return new Promise((r) => { ov.querySelector('#rok').onclick = () => { sfx.tap(); ov.remove(); r(); }; });
 }
 
@@ -309,32 +330,35 @@ async function levelUps(w, chk) {
 
 function chooseCard(id, ch, newLv, evo) {
   return new Promise((resolve) => {
-    let html;
+    let html, opts = [], intro;
     if (evo) {
-      const nf = LINES[id].forms[formOf(newLv)];
-      html = `<h2 class="c-title gold">🌟 進化的時刻到了！</h2>
-        <div class="cards"><button class="card goldcard" data-i="0"><div class="shine"></div><div class="c-icon">🌟</div><div class="c-name">超進化</div>
-        <div class="c-sil">${charSVG(id, { level: newLv, up: {} }, { fit: true })}</div><div class="c-desc">變身成更強的「？？？」</div></button></div>`;
-      speak('哇！出現金色進化卡了！點它就可以進化！');
+      html = `<h2 class="c-title gold">${t('evoTitle')}</h2>
+        <div class="cards" id="cards"><button class="card goldcard" data-i="0"><div class="shine"></div><div class="c-icon">🌟</div><div class="c-name">${t('evoName')}</div>
+        <div class="c-sil">${charSVG(id, { level: newLv, up: {} }, { fit: true })}</div><div class="c-desc">${t('evoDesc')}</div></button></div>`;
+      intro = t('evoSay');
     } else {
-      const opts = drawCards(id);
-      html = `<h2 class="c-title">升到 Lv.${newLv}！選一張升級卡</h2><div class="cards">` + opts.map((u, i) => {
+      opts = drawCards(id);
+      html = `<h2 class="c-title">${t('cardTitle', newLv)}</h2><div class="cards" id="cards">` + opts.map((u, i) => {
         const lv = (ch.up[u.id] || 0) + 1;
         return `<button class="card" data-i="${i}" style="--c:${u.color};animation-delay:${i * 0.12}s"><div class="c-icon">${u.icon}</div><div class="c-name">${u.name}</div>
           <div class="c-pips">${Array.from({ length: u.max }, (_, k) => `<i class="${k < lv ? 'on' : ''}"></i>`).join('')}</div><div class="c-desc">${u.desc[lv - 1]}</div></button>`;
       }).join('') + `</div>`;
-      chooseCard.opts = opts;
-      speak(`升級了！選一張你喜歡的升級卡！`);
+      intro = t('cardSay');
     }
     screen('cards', `<div class="bg dim2">${sceneSVG(id)}</div>${html}`);
     sfx.levelup();
+    gate($('#cards'), speak(intro)); // 說明唸完才能選
+    let chosen = false;
     stage.querySelectorAll('.card').forEach((c) => {
-      c.onclick = () => {
+      c.onclick = async () => {
+        if (chosen) return;
+        chosen = true;
         sfx.card();
         stage.querySelectorAll('.card').forEach((o) => o.classList.add(o === c ? 'chosen' : 'fade'));
-        const u = evo ? { id: 'evo', name: '超進化' } : chooseCard.opts[+c.dataset.i];
-        if (!evo) speak(u.name);
-        setTimeout(() => resolve(u), 900);
+        const u = evo ? { id: 'evo', name: t('evoName') } : opts[+c.dataset.i];
+        await Promise.all([speak(u.name), sleep(1000)]);
+        await sleep(400);
+        resolve(u);
       };
     });
   });
@@ -342,17 +366,17 @@ function chooseCard(id, ch, newLv, evo) {
 
 function battle(id, ch, evo) {
   return new Promise((resolve) => {
-    const m = evo ? pick(BOSSES) : pick(MONSTERS), maxHp = evo ? 5 : 3;
+    const m = evo ? pick(BOSSES) : pick(MONSTERS), maxHp = evo ? 5 : 3, name = monsterName(m.id);
     let hp = maxHp, busy = false;
     const fx = ['💥', ...(ch.up.fire ? ['🔥'] : []), ...(ch.up.ice ? ['❄️'] : []), ...(ch.up.thunder ? ['⚡'] : [])];
     screen('battle', `<div class="bg">${battleScene()}</div>
-      <div class="b-title">${evo ? '⚠️ 魔王出現：' : '出現了 '}<b>${m.name}</b>！</div>
-      <div class="hpwrap"><span>${m.name}</span><div class="hpbar"><i id="hp"></i></div></div>
+      <div class="b-title">${evo ? t('bossAppear', name) : t('appear', name)}</div>
+      <div class="hpwrap"><span>${name}</span><div class="hpbar"><i id="hp"></i></div></div>
       <div class="b-hero" id="bhero">${charSVG(id, ch, { fit: true })}</div>
       <div class="b-mon ${evo ? 'boss' : ''}" id="bmon">${monsterSVG(m, evo)}</div>
-      <button class="bigbtn atk" id="atk">⚔️ 攻擊！</button>`);
-    speak(evo ? `小心！${m.name}出現了！快打倒牠！` : `出現了${m.name}！按攻擊打倒牠！`);
+      <button class="bigbtn atk" id="atk">${t('attack')}</button>`);
     const hero = $('#bhero'), mon = $('#bmon'), btn = $('#atk');
+    gate(btn, speak(evo ? t('bossSay', name) : t('appearSay', name))); // 介紹唸完才能攻擊
     btn.onclick = async () => {
       if (busy || hp <= 0) return;
       busy = true; btn.disabled = true;
@@ -367,17 +391,17 @@ function battle(id, ch, evo) {
       mon.appendChild(d);
       setTimeout(() => d.remove(), 900);
       burst(760, 380, pick(fx), 6);
-      await sleep(380);
+      await sleep(480);
       hero.classList.remove('lunge'); mon.classList.remove('hit');
       if (hp > 0) { busy = false; btn.disabled = false; return; }
       sfx.defeat();
       mon.classList.add('defeated');
       btn.style.visibility = 'hidden';
-      $('.b-title').innerHTML = '🎉 <b>勝利！</b>';
+      $('.b-title').innerHTML = t('victory');
       confetti(30);
       hero.classList.add('jump');
-      await speak(`打倒${m.name}了！你贏了！`);
-      await sleep(500);
+      await speak(t('winSay', name)); // 等勝利台詞唸完
+      await sleep(900);
       resolve();
     };
   });
@@ -387,31 +411,33 @@ function transform(id, before, ch, evo, card) {
   return new Promise((resolve) => {
     const name = formName(id, ch.level);
     screen('transform', `<div class="bg dim2">${sceneSVG(id)}</div><div class="rays ${evo ? 'big' : ''}"></div>
-      <div class="x-title">${evo ? '進化中…' : '力量湧出來了…'}</div>
-      <div class="x-hero charging ${evo ? 'evo' : ''}" id="xhero">${charSVG(id, before, { fit: "form" })}</div>
+      <div class="x-title">${evo ? t('evolving') : t('rising')}</div>
+      <div class="x-hero charging ${evo ? 'evo' : ''}" id="xhero">${charSVG(id, before, { fit: 'form' })}</div>
       <div class="flash" id="flash"></div>
       <div class="x-info" id="xinfo"></div>`);
     sfx.charge();
     (async () => {
-      await sleep(evo ? 2400 : 1300);
+      await sleep(evo ? 2600 : 1600);
       $('#flash').classList.add('go');
       evo ? sfx.evolve() : sfx.levelup();
       await sleep(280);
       const h = $('#xhero');
       h.className = 'x-hero reveal';
-      h.innerHTML = charSVG(id, ch, { fit: "form" });
+      h.innerHTML = charSVG(id, ch, { fit: 'form' });
       confetti(evo ? 80 : 40);
-      $('.x-title').textContent = evo ? '進化成功！' : `Lv.${ch.level}！`;
+      $('.x-title').textContent = evo ? t('evoDone') : `Lv.${ch.level}！`;
       const info = $('#xinfo');
+      let say;
       if (evo) {
-        info.innerHTML = `<div class="x-name gold">${name}</div><div class="x-desc">戰力大提升！⚡ ${power(ch)}</div><button class="bigbtn gold" id="xok">太酷了！▶</button>`;
-        speak(`進化成功！變成${name}了！`);
+        info.innerHTML = `<div class="x-name gold">${name}</div><div class="x-desc">${t('powerUp', power(ch))}</div><button class="bigbtn gold" id="xok">${t('cool')}</button>`;
+        say = t('evoDoneSay', name);
       } else {
         const lv = ch.up[card.id];
-        info.innerHTML = `<div class="x-name">${card.icon} ${card.name} <small>Lv.${lv}</small></div><div class="x-desc">${card.desc[lv - 1]}</div><button class="bigbtn" id="xok">太棒了！▶</button>`;
-        speak(`${card.name}！${card.desc[lv - 1]}`);
+        info.innerHTML = `<div class="x-name">${card.icon} ${card.name} <small>Lv.${lv}</small></div><div class="x-desc">${card.desc[lv - 1]}</div><button class="bigbtn" id="xok">${t('great')}</button>`;
+        say = `${card.name}! ${card.desc[lv - 1]}`;
       }
       info.classList.add('show');
+      gate($('#xok'), speak(say)); // 唸完才能按下一步
       $('#xok').onclick = () => { sfx.tap(); resolve(); };
     })();
   });
@@ -422,4 +448,4 @@ load();
 fit();
 showTitle();
 // 開發除錯用
-window.__game = { state, save, showHome, showSelect, levelUps: () => flow(levelUps), mission: () => flow(mission), cur };
+window.__game = { state, save, showHome, showSelect, showTitle, chooseLang, levelUps: () => flow(levelUps), mission: () => flow(mission), cur };

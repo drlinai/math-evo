@@ -1,5 +1,6 @@
 // 存檔、等級經驗、升級卡池
 import { LINES, formOf } from './characters.js';
+import { setLang, detectLang, formNameOf, upText } from './i18n.js';
 
 const KEY = 'math-evo-save-v1';
 export const CHAR_IDS = ['dino', 'sea', 'boy'];
@@ -8,7 +9,7 @@ const blank = () => ({ level: 1, xp: 0, up: {}, missions: 0 });
 export const state = {
   current: null,
   chars: { dino: blank(), sea: blank(), boy: blank() },
-  settings: { music: true, voice: true },
+  settings: { music: true, voice: true, lang: null }, // lang: null = 跟著瀏覽器語言
 };
 
 export function load() {
@@ -20,34 +21,37 @@ export function load() {
       Object.assign(state.settings, raw.settings || {});
     }
   } catch (e) { /* 壞檔就用新檔 */ }
+  setLang(state.settings.lang || detectLang());
 }
 export function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 隱私模式 */ }
 }
 export function resetChar(id) { state.chars[id] = blank(); save(); }
+export function chooseLang(l) { state.settings.lang = l; setLang(l); save(); }
 
 export const xpNeed = (level) => 100 + (level - 1) * 20;
 export const isEvoLevel = (level) => level % 5 === 0 && level <= 15;
-export const formName = (id, level) => LINES[id].forms[formOf(level)].name;
+export const formName = (id, level) => formNameOf(id, formOf(level));
 
-// ---- 升級卡（三選一）：每種都會改變角色外觀 ----
+// ---- 升級卡（三選一）：每種都會改變角色外觀；名稱與說明在 i18n ----
 export const UPGRADES = [
-  { id: 'strong', name: '變強壯', icon: '💪', max: 5, color: '#ff7a59', desc: ['身體變得更壯！', '肌肉更大了！', '壯得像座山！', '超級大力士！', '無敵壯！'] },
-  { id: 'tall', name: '長高高', icon: '🦒', max: 5, color: '#4fc38a', desc: ['長高了一點！', '又長高了！', '越來越高大！', '高人一等！', '巨人等級！'] },
-  { id: 'armor', name: '盔甲升級', icon: '🛡️', max: 3, color: '#8f9db0', desc: ['穿上皮革盔甲！', '換成鋼鐵盔甲！', '閃亮的黃金盔甲！'] },
-  { id: 'weapon', name: null, icon: null, max: 3, color: '#e8483f', desc: ['變得更銳利！', '閃著金光！', '發出神秘藍光！'] },
-  { id: 'aura', name: '能量光環', icon: '✨', max: 3, color: '#7fd4ff', desc: ['身邊出現藍色光環！', '光環變成紫色！', '金色的王者光環！'] },
-  { id: 'cape', name: '英雄披風', icon: '🧣', max: 3, color: '#ff5b5b', desc: ['披上紅色披風！', '藍色的騎士披風！', '紫金色的皇家披風！'] },
-  { id: 'crown', name: '王者皇冠', icon: '👑', max: 3, color: '#ffc93c', desc: ['戴上小皇冠！', '鑲著紅寶石的銀皇冠！', '閃亮的黃金大皇冠！'] },
-  { id: 'wings', name: '飛天翅膀', icon: '🪶', max: 3, color: '#9ad7ff', desc: ['長出小翅膀！', '翅膀變大了！', '黃金大翅膀！'] },
-  { id: 'fire', name: '火焰之力', icon: '🔥', max: 3, color: '#ff8a3d', desc: ['一顆火球繞著你轉！', '兩顆火球！', '三顆火球超威風！'] },
-  { id: 'ice', name: '冰雪之力', icon: '❄️', max: 3, color: '#7fd4ff', desc: ['一片雪花繞著你轉！', '兩片雪花！', '三片雪花好酷！'] },
-  { id: 'thunder', name: '閃電之力', icon: '⚡', max: 3, color: '#ffd43a', desc: ['一道閃電繞著你轉！', '兩道閃電！', '三道閃電劈哩啪啦！'] },
-  { id: 'pet', name: '小夥伴', icon: '🐣', max: 3, color: '#ff9ecb', desc: ['來了一個史萊姆夥伴！', '又來一個夥伴！', '會飛的小精靈也來了！'] },
+  { id: 'strong', icon: '💪', max: 5, color: '#ff7a59' },
+  { id: 'tall', icon: '🦒', max: 5, color: '#4fc38a' },
+  { id: 'armor', icon: '🛡️', max: 3, color: '#8f9db0' },
+  { id: 'weapon', icon: null, max: 3, color: '#e8483f' },
+  { id: 'aura', icon: '✨', max: 3, color: '#7fd4ff' },
+  { id: 'cape', icon: '🧣', max: 3, color: '#ff5b5b' },
+  { id: 'crown', icon: '👑', max: 3, color: '#ffc93c' },
+  { id: 'wings', icon: '🪶', max: 3, color: '#9ad7ff' },
+  { id: 'fire', icon: '🔥', max: 3, color: '#ff8a3d' },
+  { id: 'ice', icon: '❄️', max: 3, color: '#7fd4ff' },
+  { id: 'thunder', icon: '⚡', max: 3, color: '#ffd43a' },
+  { id: 'pet', icon: '🐣', max: 3, color: '#ff9ecb' },
 ];
+// 取得目前語言的卡片資訊
 export function upInfo(u, charId) {
-  if (u.id !== 'weapon') return u;
-  return { ...u, name: LINES[charId].weapon.name, icon: LINES[charId].weapon.icon };
+  const tx = upText(u.id, charId);
+  return { ...u, name: tx.name, desc: tx.desc, icon: u.icon ?? LINES[charId].weapon.icon };
 }
 export function drawCards(charId) {
   const ch = state.chars[charId];

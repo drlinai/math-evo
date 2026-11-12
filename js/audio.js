@@ -1,11 +1,16 @@
 // 語音（瀏覽器內建 zh-TW）、音效與背景音樂（WebAudio 合成，不需音檔）
 import { state, save } from './state.js';
+import { getLang } from './i18n.js';
 
-let ctx = null, voice = null, musicTimer = null, musicStep = 0, master = null;
+let ctx = null, musicTimer = null, musicStep = 0, master = null;
+const voices = { zh: null, en: null };
+let currentUtter = null; // 保留參照，避免 Safari 把語音物件回收而收不到結束事件
 
 function pickVoice() {
   const vs = window.speechSynthesis?.getVoices() ?? [];
-  voice = vs.find((v) => v.lang === 'zh-TW' && /Mei|美佳/.test(v.name)) || vs.find((v) => v.lang === 'zh-TW') || vs.find((v) => v.lang.startsWith('zh')) || null;
+  const norm = (v) => v.lang.replace('_', '-');
+  voices.zh = vs.find((v) => norm(v) === 'zh-TW' && /Mei|美佳/.test(v.name)) || vs.find((v) => norm(v) === 'zh-TW') || vs.find((v) => norm(v).startsWith('zh')) || null;
+  voices.en = vs.find((v) => norm(v) === 'en-US' && /Samantha/.test(v.name)) || vs.find((v) => norm(v) === 'en-US') || vs.find((v) => norm(v).startsWith('en')) || null;
 }
 
 export function unlockAudio() {
@@ -25,20 +30,33 @@ export function unlockAudio() {
   if (state.settings.music) startMusic();
 }
 
-export function speak(text, { rate = 0.92 } = {}) {
+// 唸一句話；Promise 會等到「真的唸完」才結束，流程用它來決定何時切換畫面
+export function speak(text, { rate } = {}) {
   return new Promise((resolve) => {
     const synth = window.speechSynthesis;
-    if (!synth || !state.settings.voice) return setTimeout(resolve, 350);
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    if (voice) u.voice = voice;
-    u.lang = 'zh-TW'; u.rate = rate; u.pitch = 1.1;
-    let done = false;
-    const fin = () => { if (!done) { done = true; resolve(); } };
-    u.onend = fin; u.onerror = fin;
-    synth.speak(u);
-    setTimeout(() => { if (!synth.speaking && !synth.pending) fin(); }, 600);
-    setTimeout(fin, 1200 + text.length * 330);
+    if (!synth || !state.settings.voice || !text) return setTimeout(resolve, 500);
+    const lang = getLang();
+    const go = () => {
+      const u = new SpeechSynthesisUtterance(text);
+      if (voices[lang]) u.voice = voices[lang];
+      u.lang = lang === 'en' ? 'en-US' : 'zh-TW';
+      u.rate = rate ?? (lang === 'en' ? 0.9 : 0.92);
+      u.pitch = 1.1;
+      let done = false, started = false, t1 = 0, t2 = 0, poll = 0;
+      const fin = () => { if (done) return; done = true; clearTimeout(t1); clearTimeout(t2); clearInterval(poll); if (currentUtter === u) currentUtter = null; resolve(); };
+      u.onstart = () => { started = true; };
+      u.onend = fin; u.onerror = fin;
+      currentUtter = u;
+      synth.speak(u);
+      // 有開始唸 → 一定等到唸完（onend 沒來時，用「已不在講話」當備援判斷）
+      poll = setInterval(() => { if (started && !synth.speaking && !synth.pending) fin(); }, 300);
+      // 3.5 秒都沒開始唸 → 這台裝置的語音不能用，直接放行（之前只等 0.6 秒，iPad 起音慢會被誤判而切斷）
+      t1 = setTimeout(() => { if (!started) fin(); }, 3500);
+      // 保險上限：依字數估計，給得很寬鬆
+      t2 = setTimeout(fin, 6000 + text.length * (lang === 'en' ? 130 : 450));
+    };
+    // 先停掉上一句，稍等一下再唸（iOS 緊接著 cancel 再 speak 會吃掉新的一句）
+    if (synth.speaking || synth.pending) { synth.cancel(); setTimeout(go, 140); } else go();
   });
 }
 export const stopSpeak = () => window.speechSynthesis?.cancel();
