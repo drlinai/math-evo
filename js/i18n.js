@@ -3,6 +3,7 @@ let lang = 'zh';
 export const getLang = () => lang;
 export function setLang(l) {
   lang = l === 'en' ? 'en' : 'zh';
+  if (typeof document === 'undefined') return; // 在 node 裡跑測試時沒有畫面
   document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hant';
   document.title = lang === 'en' ? 'Math Evo Beasts' : '數學進化獸';
 }
@@ -44,6 +45,12 @@ const S = {
     evolving: '進化中…', rising: '力量湧出來了…', evoDone: '進化成功！',
     powerUp: (p) => `戰力大提升！⚡ ${p}`, cool: '太酷了！▶', great: '太棒了！▶',
     evoDoneSay: (n) => `進化成功！變成${n}了！`,
+    pickGrade: '先選年級', pickGradeSay: '請先選年級，再開始冒險！', learned: (p) => `學會 ${p}%`,
+    modeNew: '新題型', modeReview: '複習', modeBonus: '⭐ 加分題', bonusTag: '加分題',
+    tryAgain: '再想想看！', tryAgain2: '再試一次，你可以的！', answerIs: (a) => `答案是${a}`, tapGlow: '點亮亮的那個！',
+    ok: '確定 ✓', needMore: '還有沒選到的喔！', someWrong: '有選錯的喔，再看看！', nextOne: '點亮亮的那一個！',
+    colNow: (s, a) => `現在是 ${s}，要剛好 ${a}`, colNowSay: (s, a) => `現在是${s}，要剛好${a}喔！`, colFewer: '可以用更少個嗎？', padEmpty: '先按數字，再按確定！',
+    gradeProg: (name, p) => `${name}　已學會 <b>${p}%</b>`, gradeDone: '🎓 這個年級全部學會了！', gradeDoneSay: '太厲害了！這個年級全部學會了！',
   },
   en: {
     title1: 'Math', title2: 'Evo Beasts', start: 'Start Adventure ▶',
@@ -74,6 +81,12 @@ const S = {
     evolving: 'Evolving…', rising: 'Power is rising…', evoDone: 'Evolution complete!',
     powerUp: (p) => `Power up! ⚡ ${p}`, cool: 'So cool! ▶', great: 'Awesome! ▶',
     evoDoneSay: (n) => `Evolution complete! You are now ${n}!`,
+    pickGrade: 'Pick your level', pickGradeSay: 'Pick your level first, then start the adventure!', learned: (p) => `${p}% learned`,
+    modeNew: 'New', modeReview: 'Review', modeBonus: '⭐ Bonus', bonusTag: 'Bonus',
+    tryAgain: 'Think again!', tryAgain2: 'Try once more. You can do it!', answerIs: (a) => `The answer is ${a}`, tapGlow: 'Tap the glowing one!',
+    ok: 'OK ✓', needMore: 'There are more to find!', someWrong: 'Some are not right. Look again!', nextOne: 'Tap the glowing one!',
+    colNow: (s, a) => `Now: ${s}. You need exactly ${a}`, colNowSay: (s, a) => `You have ${s} now. You need exactly ${a}!`, colFewer: 'Can you use fewer?', padEmpty: 'Tap the numbers first, then OK!',
+    gradeProg: (name, p) => `${name} — <b>${p}%</b> learned`, gradeDone: '🎓 You have learned this whole level!', gradeDoneSay: 'Amazing! You have learned this whole level!',
   },
 };
 export const t = (key, ...args) => { const v = S[lang][key]; return typeof v === 'function' ? v(...args) : v; };

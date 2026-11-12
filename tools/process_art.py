@@ -39,11 +39,11 @@ SHEETS = {
                           'sword1', 'sword2', 'sword3', 'shield3', 'fire', 'ice', 'thunder', 'pets3']),
     'items': dict(file='07_items.jpeg', mode='grid', cols=5, rows=5, maxh=220, names=ITEM_NAMES),
     # 夥伴：上排 3 個骷髏兵、下排 3 個樹精（這張圖還沒放進 art_src 時會自動跳過）
-    'buddies': dict(file='13_buddies.jpeg', mode='grid', cols=3, rows=2, maxh=300,
-                    names=['skel1', 'skel2', 'skel3', 'tree1', 'tree2', 'tree3']),
+    'buddies': dict(file='13_buddies.jpeg', mode='rows', rows=[3, 4], maxh=300,
+                    names=['skel1', 'skel2', 'skel3', 'tree1', 'tree_plain', 'tree2', 'tree3']),
 }
 # 圖集裡有、但遊戲已經不用的圖形（盾牌與武器升級卡已取消）
-SKIP = {'claw1', 'claw2', 'claw3', 'fang1', 'fang2', 'fang3', 'sword1', 'sword2', 'sword3', 'shield1', 'shield2', 'shield3'}
+SKIP = {'tree_plain', 'claw1', 'claw2', 'claw3', 'fang1', 'fang2', 'fang3', 'sword1', 'sword2', 'sword3', 'shield1', 'shield2', 'shield3'}
 BACKGROUNDS = {'bg_dino': '08_bg_dino.jpeg', 'bg_sea': '09_bg_sea.jpeg', 'bg_boy': '10_bg_boy.jpeg',
                'bg_battle': '11_bg_battle.jpeg', 'bg_title': '12_bg_title.jpeg'}
 
@@ -95,10 +95,12 @@ def candidates(rgb, aw, lab, exposed, min_area=700):
     return out, cl
 
 
-def scan():
+def scan(only=None):
     os.makedirs(DBG, exist_ok=True)
     report = {}
     for key, cfg in SHEETS.items():
+        if only and key not in only:
+            continue
         if not os.path.exists(os.path.join(SRC, cfg['file'])):
             continue
         rgb = load(cfg['file'])
@@ -170,7 +172,16 @@ def split(alpha, cfg):
     else:
         k = len(cfg['names'])
         mains = np.argsort(-areas)[:k]
-        mains = mains[np.argsort(coms[mains, 1])]  # 由左到右
+        if cfg['mode'] == 'rows':  # 每列數量不同的圖集：先依上下分列，每列再由左到右
+            mains = mains[np.argsort(coms[mains, 0])]
+            out, at = [], 0
+            for cnt in cfg['rows']:
+                part = mains[at:at + cnt]
+                out.extend(part[np.argsort(coms[part, 1])])
+                at += cnt
+            mains = np.array(out)
+        else:
+            mains = mains[np.argsort(coms[mains, 1])]  # 由左到右
         boxes = ndi.find_objects(lab)
         for rank, m in enumerate(mains):
             comp_owner[m + 1] = rank
@@ -227,11 +238,16 @@ def hue_mask(col, lo, hi, smin=0.25, vmin=0.35):
     return inr & (sat >= smin) & (mx >= vmin)
 
 
-def build():
+def build(only=None):
+    """only=圖集名稱清單時只重做那幾張（其餘沿用 js/art-meta.js 裡現有的紀錄）"""
     os.makedirs(OUT, exist_ok=True)
     holes = json.load(open(HOLES_FILE)) if os.path.exists(HOLES_FILE) else {}
     meta = {}
+    if only:
+        meta = json.loads(open('js/art-meta.js').read().split('export const ART = ')[1].rstrip().rstrip(';'))
     for key, cfg in SHEETS.items():
+        if only and key not in only:
+            continue
         if not os.path.exists(os.path.join(SRC, cfg['file'])):
             print(key, 'skipped (no source image)')
             continue
@@ -265,7 +281,7 @@ def build():
                 save_sprite(col, alpha, clean(mask & ~(green & ~yellow)), 'pets2', cfg['maxh'], meta)
             save_sprite(col, alpha, mask, name, cfg['maxh'], meta)
         print(key, 'done')
-    for name, f in BACKGROUNDS.items():
+    for name, f in ({} if only else BACKGROUNDS).items():
         im = Image.open(os.path.join(SRC, f)).convert('RGB')
         w = round(im.height * 4 / 3)  # 遊戲畫面是 4:3，取中間
         x0 = (im.width - w) // 2
@@ -304,4 +320,5 @@ def sheet():
 
 
 if __name__ == '__main__':
-    {'scan': scan, 'build': build, 'sheet': sheet}[sys.argv[1] if len(sys.argv) > 1 else 'build']()
+    cmd, only = (sys.argv[1] if len(sys.argv) > 1 else 'build'), sys.argv[2:] or None
+    sheet() if cmd == 'sheet' else {'scan': scan, 'build': build}[cmd](only)

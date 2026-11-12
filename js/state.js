@@ -1,6 +1,6 @@
 // 存檔、等級經驗、升級卡池
-import { formOf, upIcon, upReady } from './sprites.js?v=9';
-import { setLang, detectLang, formNameOf, upText } from './i18n.js?v=9';
+import { formOf, upIcon, upReady } from './sprites.js?v=17';
+import { setLang, detectLang, formNameOf, upText } from './i18n.js?v=17';
 
 const KEY = 'math-evo-save-v1';
 export const CHAR_IDS = ['dino', 'sea', 'boy'];
@@ -10,6 +10,8 @@ export const state = {
   current: null,
   chars: { dino: blank(), sea: blank(), boy: blank() },
   settings: { music: true, voice: true, lang: null }, // lang: null = 跟著瀏覽器語言
+  grade: null, // 目前選的年級（js/q/index.js 的 GRADES id）；null = 還沒選
+  prog: {},    // 學習進度：prog[年級][題型] = 第一次就答對的題數
 };
 
 export function load() {
@@ -22,6 +24,8 @@ export function load() {
         Object.keys(state.chars[id].up).forEach((k) => { if (!UPGRADES.some((u) => u.id === k)) delete state.chars[id].up[k]; }); // 已取消的卡（盾牌、武器）
       });
       Object.assign(state.settings, raw.settings || {});
+      state.grade = raw.grade ?? null;
+      state.prog = raw.prog || {};
       // 設定版本 2：語音與音樂一律回到「開」（之前可能被關掉）
       if (state.settings.sv !== 2) { state.settings.voice = true; state.settings.music = true; }
     }

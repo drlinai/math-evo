@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=9';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=9';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=9';
-import { pickStages } from './questions.js?v=9';
-import { t, getLang, num, monsterName, stageTitle } from './i18n.js?v=9';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=17';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=17';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=17';
+import { GRADES, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=17';
+import { t, getLang, monsterName } from './i18n.js?v=17';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -74,16 +74,35 @@ const cur = () => state.chars[state.current];
 // =====================================================================
 //  標題
 // =====================================================================
+const gradeName = (g) => (getLang() === 'en' ? g.en : g.zh);
 function showTitle() {
   run++;
+  if (!gradeOf(state.grade)) state.grade = null;
   const babies = CHAR_IDS.map((id, i) => `<div class="t-char" style="animation-delay:${-i * 0.3}s">${charSVG(id, { level: 1, up: {} }, { fit: true })}</div>`).join('');
+  const grades = GRADES.map((g) => { const p = progressOf(state.prog, g.id); return `<button class="gbtn ${state.grade === g.id ? 'sel' : ''}" data-g="${g.id}">${gradeName(g)}<small>${t('learned', p.pct)}</small><i style="width:${p.pct}%"></i></button>`; }).join('');
   screen('title', `<div class="bg title-bg"></div><div class="stars"></div>
     <h1 class="logo"><span>${t('title1')}</span><span class="l2">${t('title2')}</span></h1>
     <div class="t-row">${babies}</div>
-    <button class="bigbtn" id="go">${t('start')}</button>
+    <div class="gbox" id="gbox"><h3>${t('pickGrade')}</h3><div class="grades">${grades}</div></div>
+    <button class="bigbtn ${state.grade ? '' : 'need'}" id="go">${t('start')}</button>
     <div class="t-tools"><button class="rbtn" id="lg" aria-label="language">🌐</button><button class="rbtn" id="fs">⛶</button></div>`);
+  // 一定要先選年級，才能開始冒險（選過的會記住）
+  stage.querySelectorAll('.gbtn').forEach((b) => {
+    b.onclick = () => {
+      sfx.tap();
+      state.grade = b.dataset.g; save();
+      stage.querySelectorAll('.gbtn').forEach((o) => o.classList.toggle('sel', o === b));
+      $('#go').classList.remove('need'); $('#gbox').classList.remove('need');
+    };
+  });
   $('#go').onclick = () => {
-    unlockAudio(); sfx.fanfare();
+    unlockAudio();
+    if (!state.grade) {
+      sfx.wrong(); speak(t('pickGradeSay'));
+      const g = $('#gbox'); g.classList.remove('need'); void g.offsetWidth; g.classList.add('need');
+      return;
+    }
+    sfx.fanfare();
     state.current ? showHome() : showSelect();
   };
   $('#fs').onclick = toggleFS;
@@ -126,16 +145,20 @@ function showHome() {
   const id = state.current, ch = cur(), need = xpNeed(ch.level), pending = ch.xp >= need;
   const badges = UPGRADES.filter((u) => ch.up[u.id]).map((u) => { const i = upInfo(u, id, ch.up[u.id]); return `<span class="badge" style="--c:${u.color}">${i.icon}<b>${ch.up[u.id]}</b></span>`; }).join('');
   const nextEvo = ch.level < 15 ? t('evoIn', 5 - (ch.level % 5)) : t('finalForm');
+  const grade = gradeOf(state.grade);
+  if (!grade) { showTitle(); return; }
   screen('home', `<div class="bg">${sceneSVG(id)}</div>
     <div class="topbar"><button class="rbtn" id="sw">🔄<small>${t('sw')}</small></button><span class="grow"></span>
       <button class="rbtn" id="mu">${state.settings.music ? '🎵' : '🔇'}</button><button class="rbtn" id="fs">⛶</button><button class="rbtn" id="st">⚙️</button></div>
     <div class="plate"><div class="lv">Lv.<b>${ch.level}</b></div><div class="nm">${formName(id, ch.level)}</div>
       <div class="xpbar"><i style="width:${Math.min(100, (ch.xp / need) * 100)}%"></i><span>${Math.min(ch.xp, need)} / ${need}</span></div>
       <div class="sub"><span>⚡ ${t('power')} <b>${power(ch)}</b></span><span>🌟 ${nextEvo}</span></div></div>
+    <button class="gchip" id="gr">📚 ${t('gradeProg', gradeName(grade), progressOf(state.prog, grade.id).pct)}</button>
     <div class="badges">${badges}</div>
     <div class="hero" id="hero">${charSVG(id, ch)}</div>
     <button class="bigbtn ${pending ? 'gold' : ''}" id="start">${pending ? t('levelup') : t('mission')}</button>`);
   $('#sw').onclick = () => { sfx.tap(); showSelect(); };
+  $('#gr').onclick = () => { sfx.tap(); showTitle(); };
   $('#mu').onclick = (e) => { e.currentTarget.textContent = toggleMusic() ? '🎵' : '🔇'; };
   $('#fs').onclick = toggleFS;
   $('#st').onclick = showSettings;
@@ -176,16 +199,17 @@ function showSettings() {
 }
 
 // =====================================================================
-//  任務：3 關 × 每關 PER_STAGE 題
+//  任務：3 關 × 每關 PER_STAGE 題；題型由年級的學習進度決定（js/q/index.js）
 // =====================================================================
 const PER_STAGE = 2; // 每關題數
 async function mission(w, chk) {
-  const id = state.current, ch = cur();
-  const plan = pickStages(ch.level);
+  const id = state.current, ch = cur(), grade = gradeOf(state.grade);
+  if (!grade) { showTitle(); return; }
+  const plan = planMission(state.prog, grade.id), before = progressOf(state.prog, grade.id).pct;
   let first = 0, total = 0;
   screen('mission', `<div class="bg dim">${sceneSVG(id)}</div>
     <div class="mtop"><button class="rbtn" id="quit">🏠</button>
-      <div class="stages">${plan.map((s, i) => `<span class="sdot" data-i="${i}">${s.icon}</span>`).join('<i class="sline"></i>')}</div>
+      <div class="stages">${plan.map((s, i) => `<span class="sdot" data-i="${i}">${s.type.topic[2]}</span>`).join('<i class="sline"></i>')}</div>
       <div class="pips" id="pips"></div></div>
     <div class="prompt"><button class="rbtn spk" id="spk">🔊</button><div id="ptext"></div></div>
     <div class="qscene" id="qscene"></div>
@@ -195,15 +219,24 @@ async function mission(w, chk) {
   $('#quit').onclick = () => { sfx.tap(); showHome(); };
 
   for (let si = 0; si < plan.length; si++) {
-    const st = plan[si], title = stageTitle(st.id);
+    const st = plan[si], tp = st.type, title = getLang() === 'en' ? tp.en : tp.zh;
     stage.querySelectorAll('.sdot').forEach((d, i) => d.classList.toggle('on', i === si));
-    $('#ptext').innerHTML = ''; $('#qscene').innerHTML = ''; $('#qscene').removeAttribute('data-bg'); $('#answers').innerHTML = '';
-    await w(banner(t('stageN', si + 1), `${st.icon} ${title}`, t('stageSay', si + 1, title)));
+    $('#ptext').innerHTML = ''; $('#qscene').innerHTML = ''; $('#qscene').className = 'qscene'; $('#qscene').dataset.bg = 'plain'; $('#answers').innerHTML = '';
+    const mode = t(st.mode === 'new' ? 'modeNew' : st.mode === 'bonus' ? 'modeBonus' : 'modeReview');
+    await w(banner(`${t('stageN', si + 1)}　${mode}`, `${tp.topic[2]} ${title}`, t('stageSay', si + 1, title)));
     for (let qi = 0; qi < PER_STAGE; qi++) {
       $('#pips').innerHTML = Array.from({ length: PER_STAGE }, (_, k) => `<i class="${k < qi ? 'done' : k === qi ? 'now' : ''}"></i>`).join('');
-      const q = st.gen(ch.level, qi);
+      const seen = state.prog[grade.id]?.[tp.id] || 0;
+      let q;
+      try { q = tp.gen(st.mode === 'new' ? Math.min(seen, 1) : 2); } catch (e) { console.error('題型出錯', tp.id, e); continue; }
+      if (tp.bonus) q.prompt = `<span class="bonustag">${t('bonusTag')}</span>${q.prompt}`;
       const ok1 = await w(ask(q));
-      total++; if (ok1) first++;
+      total++;
+      if (ok1) {
+        first++;
+        // 第一次就答對才算練到；複習關不影響進度
+        if (st.mode !== 'review') { (state.prog[grade.id] ||= {})[tp.id] = Math.min(NEED, seen + 1); save(); }
+      }
     }
     stage.querySelectorAll('.sdot')[si].classList.add('done');
     sfx.star();
@@ -212,7 +245,8 @@ async function mission(w, chk) {
   // 結算
   const gain = first * 18 + (total - first) * 9 + 46; // 每組 6 題：全對 154、最少 100（Lv.1 一組必升級）
   ch.xp += gain; ch.missions++; save();
-  await w(result(first, total, gain));
+  const now = progressOf(state.prog, grade.id).pct;
+  await w(result(first, total, gain, { name: gradeName(grade), pct: now, justDone: now === 100 && before < 100 }));
   if (ch.xp >= xpNeed(ch.level)) await levelUps(w, chk); else showHome();
 }
 
@@ -226,85 +260,160 @@ async function banner(top, main, say) {
   await sleep(350);
 }
 
+// 把 HTML 變成可以唸的文字
+const plain = (h) => String(h).replace(/<[^>]*>/g, ' ').replace(/[✔✘]/g, '').replace(/\s+/g, ' ').trim();
+
+// 出一題、等小朋友答對。回傳「是不是第一次就答對」。
+// 題目物件的格式見 js/q/core.js；這裡負責六種作答方式與答錯時的提示。
 function ask(q) {
   return new Promise((resolve) => {
-    const scene = $('#qscene'), ans = $('#answers'), mini = $('#mini');
+    const scene = $('#qscene'), ans = $('#answers'), mini = $('#mini'), pt = $('#ptext');
     let tries = 0, locked = false;
-    $('#ptext').innerHTML = q.prompt;
-    scene.className = 'qscene';
-    q.render(scene, { priceTag: t('priceTag', q.answer), trayLabel: t('trayLabel'), walletLabel: t('walletLabel') });
-    speak(q.say);
-    $('#spk').onclick = () => speak(q.say);
+    window.__game.q = q; // 除錯用：目前這一題
+    pt.innerHTML = q.prompt;
+    scene.className = `qscene${q.stack ? ' stack' : ''}`;
+    scene.dataset.bg = q.bg;
+    scene.innerHTML = `<div class="fit">${q.scene}</div>`;
+    // 題目文字太長就縮小字級，直到不會蓋到題目區
+    const box = pt.parentElement;
+    for (const c of ['', 'f2', 'f3', 'f4']) { pt.className = c; if (box.offsetTop + box.offsetHeight <= scene.offsetTop - 8) break; }
+    // 題目區的圖比框大時，整個等比例縮小到放得下
+    //（圖比框小很多時也稍微放大，小朋友比較看得清楚；卡片題不放大）
+    const fitBox = scene.firstElementChild, k = Math.min((scene.clientWidth - 20) / fitBox.offsetWidth, (scene.clientHeight - 12) / fitBox.offsetHeight);
+    const big = fitBox.querySelector('.taps, .collect, .numq') ? 1 : Math.min(1.45, k * 0.86);
+    if (k < 0.995) fitBox.style.zoom = k.toFixed(3); else if (big > 1.08) fitBox.style.zoom = big.toFixed(3);
+    scene.onclick = null; ans.onclick = null; ans.className = 'answers'; ans.innerHTML = '';
+    // 唸題目；「數聲音」的題目唸完後再敲 q.beats 下
+    let playing = 0;
+    const play = async () => {
+      const my = ++playing, r = run;
+      await speak(q.say);
+      for (let i = 0; i < q.beats && my === playing && r === run && !locked; i++) {
+        await sleep(i ? 620 : 350);
+        if (my !== playing || r !== run || locked) break;
+        sfx.hit();
+        const d = scene.querySelector('.beat'); if (d) { d.classList.remove('jump'); void d.offsetWidth; d.classList.add('jump'); }
+      }
+    };
+    play();
+    $('#spk').onclick = play;
 
-    const win = async (btn) => {
+    const win = async (el) => {
       locked = true;
-      btn?.classList.add('ok');
+      el?.classList.add('ok');
       sfx.correct();
       mini.classList.remove('jump'); void mini.offsetWidth; mini.classList.add('jump');
       burst(512, 360, '⭐', 10);
-      const eq = $('#eq');
-      eq.textContent = q.eq; eq.classList.add('show');
-      await speak(`${pick(t('praise'))} ${q.eqSay}`); // 等「答對了＋算式」唸完
+      const eq = $('#eq'), full = q.full ?? '✔', len = plain(full).length;
+      eq.innerHTML = full;
+      eq.className = `eq show ${len > 26 ? 'xs' : len > 15 ? 's' : len > 9 ? 'm' : ''}`;
+      await speak(`${pick(t('praise'))} ${q.fullSay || ''}`); // 等「答對了＋完整句子」唸完
       await sleep(900);
       eq.classList.remove('show');
       await sleep(350);
       resolve(tries === 0);
     };
+    // 答錯不懲罰：第 1 次給提示（需要的話幫忙標數字），第 2 次鼓勵，第 3 次直接亮出答案。回傳 true 表示該亮答案了
+    const miss = (say) => {
+      tries++; sfx.wrong();
+      if (q.count) { let n = 0; scene.querySelectorAll(q.count).forEach((el) => { const b = el.querySelector('b'); if (b) { b.textContent = ++n; el.classList.add('numbered'); } }); }
+      if (tries >= 3) return true;
+      speak(say || (tries === 1 ? q.hint || t('tryAgain') : t('tryAgain2')));
+      return false;
+    };
+    const okBtn = () => { ans.innerHTML = `<button class="ans okbtn" id="okb">${t('ok')}</button>`; return $('#okb'); };
 
-    if (q.type === 'pay') {
-      ans.innerHTML = `<button class="ans paybtn" id="payok">${t('pay')}</button>`;
-      const tray = scene.querySelector('.traycoins'), wallet = scene.querySelector('.walletcoins'), sumEl = scene.querySelector('.traysum');
-      const sum = () => [...tray.children].reduce((a, c) => a + +c.dataset.v, 0);
-      scene.onclick = (e) => {
-        const c = e.target.closest('.coin');
-        if (!c || locked) return;
-        sfx.coin();
-        (c.parentElement === wallet ? tray : wallet).appendChild(c);
-        if (tries > 0) sumEl.textContent = t('traySum', sum());
-      };
-      $('#payok').onclick = () => {
-        if (locked) return;
-        const s = sum();
-        if (s === q.answer) { scene.onclick = null; win($('#payok')); return; }
-        tries++; sfx.wrong();
-        sumEl.textContent = t('traySum', s);
-        scene.classList.add('shake'); setTimeout(() => scene.classList.remove('shake'), 400);
-        if (tries === 1) speak(s < q.answer ? t('payLow', s, q.answer) : t('payHigh', s, q.answer));
-        else speak(t('tryIt', q.payHint));
+    // ---- 單選：下方按鈕 或 題目區的大卡片 ----
+    if (q.kind === 'choice' || q.kind === 'tap') {
+      const box = q.kind === 'choice' ? ans : scene, sel = q.kind === 'choice' ? '.ans' : '.tapcard';
+      if (q.kind === 'choice') {
+        ans.classList.add(`n${q.opts.length}`);
+        ans.innerHTML = q.opts.map((o) => `<button class="ans ${q.cls}" data-v="${o.v}">${o.h}</button>`).join('');
+      }
+      box.onclick = (e) => {
+        const b = e.target.closest(sel);
+        if (!b || locked || b.disabled) return;
+        if (b.dataset.v === q.ans) { win(b); return; }
+        b.classList.add('no'); b.disabled = true;
+        const right = box.querySelector(`${sel}[data-v="${q.ans}"]`), left = [...box.querySelectorAll(sel)].filter((x) => !x.disabled).length;
+        if (miss() || left <= 1) { right.classList.add('glowme'); const a = plain(right.innerHTML); speak(a && a.length < 40 ? `${t('answerIs', a)}。${t('tapGlow')}` : t('tapGlow')); }
       };
       return;
     }
-
-    ans.innerHTML = q.choices.map((c) => `<button class="ans" data-v="${c}">${c}</button>`).join('');
+    // ---- 多選：選完按確定 ----
+    if (q.kind === 'multi') {
+      const btn = okBtn();
+      scene.onclick = (e) => { const b = e.target.closest('.tapcard'); if (!b || locked) return; sfx.pop(); b.classList.toggle('sel'); b.classList.remove('glowme'); };
+      btn.onclick = () => {
+        if (locked) return;
+        const cards = [...scene.querySelectorAll('.tapcard')];
+        const wrong = cards.filter((c) => c.classList.contains('sel') && c.dataset.ok !== '1'), missing = cards.filter((c) => !c.classList.contains('sel') && c.dataset.ok === '1');
+        if (!wrong.length && !missing.length) { cards.forEach((c) => { if (c.dataset.ok === '1') c.classList.add('ok'); }); win(btn); return; }
+        wrong.forEach((c) => { c.classList.remove('sel'); c.classList.add('bump'); setTimeout(() => c.classList.remove('bump'), 450); });
+        if (miss(wrong.length ? t('someWrong') : t('needMore'))) { missing.forEach((c) => c.classList.add('glowme')); speak(t('tapGlow')); }
+      };
+      return;
+    }
+    // ---- 依序點 ----
+    if (q.kind === 'order') {
+      let next = 0;
+      const line = scene.querySelector('.orderline');
+      scene.onclick = (e) => {
+        const b = e.target.closest('.taps .tapcard');
+        if (!b || locked) return;
+        if (+b.dataset.o === next) {
+          sfx.pop(); b.classList.remove('glowme'); line.appendChild(b); next++;
+          if (next === q.n) win(null);
+          return;
+        }
+        b.classList.add('bump'); setTimeout(() => b.classList.remove('bump'), 450);
+        if (miss()) { scene.querySelector(`.taps .tapcard[data-o="${next}"]`)?.classList.add('glowme'); speak(t('nextOne')); }
+      };
+      return;
+    }
+    // ---- 拿東西／付錢：點一下放進盤子，再點一下拿回來 ----
+    if (q.kind === 'collect') {
+      const btn = okBtn(), tray = scene.querySelector('.traytok'), pool = scene.querySelector('.pool2'), sumEl = scene.querySelector('.traysum');
+      const fmt = q.showSum || String, sum = () => [...tray.children].reduce((a, c) => a + +c.dataset.v, 0);
+      scene.onclick = (e) => {
+        const c = e.target.closest('.tok');
+        if (!c || locked) return;
+        sfx.coin();
+        (c.parentElement === pool ? tray : pool).appendChild(c);
+        if (tries > 0) sumEl.textContent = fmt(sum());
+      };
+      btn.onclick = () => {
+        if (locked) return;
+        const s = sum(), n = tray.children.length;
+        if (s === q.ans && (!q.fewest || n <= q.fewest)) { scene.onclick = null; win(btn); return; }
+        sumEl.textContent = fmt(s);
+        scene.classList.add('shake'); setTimeout(() => scene.classList.remove('shake'), 400);
+        const say = s === q.ans ? t('colFewer') : t('colNowSay', plain(fmt(s)), plain(fmt(q.ans)));
+        if (miss(say)) speak(say);
+      };
+      return;
+    }
+    // ---- 數字鍵盤 ----
+    ans.innerHTML = `<div class="pad"><div class="padscreen" id="pscr"></div><div class="padkeys">${[1, 2, 3, 4, 5, '⌫', 6, 7, 8, 9, 0, '✓'].map((k) => `<button class="${k === '⌫' ? 'del' : k === '✓' ? 'go' : ''}" data-k="${k}">${k}</button>`).join('')}</div></div>`;
+    const scr = $('#pscr');
+    let val = '';
+    const show = () => { scr.classList.remove('hintans'); scr.innerHTML = val === '' ? '' : `${val}${q.unit ? `<small>${q.unit}</small>` : ''}`; };
     ans.onclick = (e) => {
-      const b = e.target.closest('.ans');
-      if (!b || locked || b.disabled) return;
-      if (+b.dataset.v === q.answer) { win(b); return; }
-      tries++; sfx.wrong();
-      b.classList.add('no'); b.disabled = true;
-      hint(q, scene, ans, tries);
+      const b = e.target.closest('.padkeys button');
+      if (!b || locked) return;
+      const k = b.dataset.k;
+      if (k === '⌫') { sfx.tap(); val = val.slice(0, -1); show(); return; }
+      if (k !== '✓') { sfx.tap(); if (val.length < 4) val = val === '0' ? k : val + k; show(); return; }
+      if (val === '') { speak(t('padEmpty')); return; }
+      if (+val === q.ans) { win(scr); return; }
+      scr.classList.add('shake'); setTimeout(() => scr.classList.remove('shake'), 400);
+      val = '';
+      if (miss()) { scr.classList.add('hintans'); scr.textContent = q.ans; speak(t('answerIs', q.ans)); } else show();
     };
   });
 }
 
-// 答錯不懲罰：1 標數字 → 2 帶著數 → 3 亮出答案
-function hint(q, scene, ans, tries) {
-  q.onHint?.(scene);
-  const els = q.countEls(scene);
-  let acc = 0;
-  els.forEach((el) => { acc += +(el.dataset.v || 1); el.querySelector('b').textContent = acc; el.classList.add('numbered'); });
-  if (tries === 1) { speak(t('hint1')); return; }
-  if (tries === 2) {
-    const vals = []; acc = 0;
-    els.forEach((el, i) => { acc += +(el.dataset.v || 1); vals.push(num(acc)); setTimeout(() => { el.classList.add('count'); sfx.pop(); }, 500 + i * 520); });
-    speak(t('hint2', vals), { rate: 0.78 });
-    return;
-  }
-  speak(t('hint3', q.answer));
-  ans.querySelector(`.ans[data-v="${q.answer}"]`)?.classList.add('glowme');
-}
-
-function result(first, total, gain) {
+function result(first, total, gain, g) {
   const stars = first >= total - 1 ? 3 : first >= total - 3 ? 2 : 1;
   const ov = document.createElement('div');
   ov.className = 'overlay';
@@ -312,10 +421,11 @@ function result(first, total, gain) {
     <div class="rstars">${[1, 2, 3].map((i) => `<span class="${i <= stars ? 'on' : ''}" style="animation-delay:${i * 0.25}s">⭐</span>`).join('')}</div>
     <div class="rline">${t('firstTry', first, total)}</div>
     <div class="rxp">${t('xp')} <b>+${gain}</b></div>
+    <div class="rprog">${g.justDone ? t('gradeDone') : t('gradeProg', g.name, g.pct)}</div>
     <button class="bigbtn" id="rok">${t('cont')}</button></div>`;
   stage.appendChild(ov);
   confetti(); sfx.fanfare();
-  gate(ov.querySelector('#rok'), speak(t('doneSay', gain)));
+  gate(ov.querySelector('#rok'), speak(t('doneSay', gain) + (g.justDone ? ` ${t('gradeDoneSay')}` : '')));
   return new Promise((r) => { ov.querySelector('#rok').onclick = () => { sfx.tap(); ov.remove(); r(); }; });
 }
 
@@ -459,4 +569,13 @@ preloadArt();
 fit();
 showTitle();
 // 開發除錯用
-window.__game = { state, save, showHome, showSelect, showTitle, chooseLang, levelUps: () => flow(levelUps), mission: () => flow(mission), cur };
+window.__game = { state, save, showHome, showSelect, showTitle, chooseLang, levelUps: () => flow(levelUps), mission: () => flow(mission), cur,
+  // 直接試某個題型：__game.tryQ('k1', 3) = 中班第 3 種題型（d=難度 0~2）
+  tryQ: (gid, n, d = 1) => flow(async (w) => {
+    const tp = gradeOf(gid).types[n - 1];
+    screen('mission', `<div class="bg dim">${sceneSVG(state.current || 'dino')}</div><div class="mtop"><button class="rbtn" id="quit">🏠</button><div class="stages"></div><div class="pips" id="pips"></div></div>
+      <div class="prompt"><button class="rbtn spk" id="spk">🔊</button><div id="ptext"></div></div><div class="qscene" id="qscene"></div><div class="answers" id="answers"></div>
+      <div class="mini" id="mini">${charSVG(state.current || 'dino', cur() || { level: 1, up: {} }, { fit: true })}</div><div class="eq" id="eq"></div><div class="banner" id="banner"></div>`);
+    $('#quit').onclick = showHome;
+    for (;;) await w(ask(tp.gen(d)));
+  }) };
