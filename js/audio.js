@@ -55,8 +55,9 @@ export function speak(text, { rate } = {}) {
       // 保險上限：依字數估計，給得很寬鬆
       t2 = setTimeout(fin, 6000 + text.length * (lang === 'en' ? 130 : 450));
     };
-    // 先停掉上一句，稍等一下再唸（iOS 緊接著 cancel 再 speak 會吃掉新的一句）
-    if (synth.speaking || synth.pending) { synth.cancel(); setTimeout(go, 140); } else go();
+    // 先停掉上一句，然後「立刻」唸：Safari / iPad 要求語音必須在點擊當下同步發出，延後就會整個靜音
+    synth.cancel();
+    go();
   });
 }
 export const stopSpeak = () => window.speechSynthesis?.cancel();
