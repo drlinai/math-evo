@@ -1,10 +1,11 @@
 // 語音（瀏覽器內建 zh-TW）、音效與背景音樂（WebAudio 合成，不需音檔）
-import { state, save } from './state.js';
-import { getLang } from './i18n.js';
+import { state, save } from './state.js?v=1';
+import { getLang } from './i18n.js?v=1';
 
 let ctx = null, musicTimer = null, musicStep = 0, master = null;
 const voices = { zh: null, en: null };
 let currentUtter = null; // 保留參照，避免 Safari 把語音物件回收而收不到結束事件
+let everStarted = false; // 這次開啟後，語音是否真的開始唸過
 
 function pickVoice() {
   const vs = window.speechSynthesis?.getVoices() ?? [];
@@ -44,7 +45,7 @@ export function speak(text, { rate } = {}) {
       u.pitch = 1.1;
       let done = false, started = false, t1 = 0, t2 = 0, poll = 0;
       const fin = () => { if (done) return; done = true; clearTimeout(t1); clearTimeout(t2); clearInterval(poll); if (currentUtter === u) currentUtter = null; resolve(); };
-      u.onstart = () => { started = true; };
+      u.onstart = () => { started = true; everStarted = true; };
       u.onend = fin; u.onerror = fin;
       currentUtter = u;
       synth.speak(u);
@@ -61,6 +62,12 @@ export function speak(text, { rate } = {}) {
   });
 }
 export const stopSpeak = () => window.speechSynthesis?.cancel();
+// 給設定頁的「試聽」用：這台裝置的語音狀況
+export function voiceInfo() {
+  pickVoice();
+  return { supported: !!window.speechSynthesis, count: window.speechSynthesis?.getVoices().length ?? 0, zh: voices.zh?.name || null, en: voices.en?.name || null, started: everStarted };
+}
+export function resetVoiceProbe() { everStarted = false; }
 
 function tone(freq, dur, delay = 0, type = 'sine', vol = 0.16, slideTo = 0) {
   if (!ctx) return;

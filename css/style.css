@@ -298,3 +298,5 @@ html[lang=en] .plate .sub { font-size: 16px; }
 html[lang=en] .coin i::after { content: ''; }
 html[lang=en] .coin i::before { content: '$'; font-size: .5em; vertical-align: .3em; margin-right: 1px; }
 html[lang=en] .paybtn { font-size: 50px; }
+
+.mnote { min-height: 26px; margin-top: 8px; font-size: 19px; color: #5a4f78; }

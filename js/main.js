@@ -1,9 +1,9 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js';
-import { charSVG, MONSTERS, BOSSES, monsterSVG } from './characters.js';
-import { sceneSVG, battleScene } from './scenes.js';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic } from './audio.js';
-import { pickStages } from './questions.js';
-import { t, getLang, num, monsterName, stageTitle } from './i18n.js';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=1';
+import { charSVG, MONSTERS, BOSSES, monsterSVG } from './characters.js?v=1';
+import { sceneSVG, battleScene } from './scenes.js?v=1';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=1';
+import { pickStages } from './questions.js?v=1';
+import { t, getLang, num, monsterName, stageTitle } from './i18n.js?v=1';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -82,7 +82,7 @@ function showTitle() {
     <h1 class="logo"><span>${t('title1')}</span><span class="l2">${t('title2')}</span></h1>
     <div class="t-row">${babies}</div>
     <button class="bigbtn" id="go">${t('start')}</button>
-    <div class="t-tools"><button class="rbtn" id="lg">🌐<small>${getLang() === 'en' ? '中文' : 'English'}</small></button><button class="rbtn" id="fs">⛶</button></div>`);
+    <div class="t-tools"><button class="rbtn" id="lg" aria-label="language">🌐</button><button class="rbtn" id="fs">⛶</button></div>`);
   $('#go').onclick = () => {
     unlockAudio(); sfx.fanfare();
     state.current ? showHome() : showSelect();
@@ -152,11 +152,21 @@ function showSettings() {
   m.innerHTML = `<div class="mbox"><h3>${t('settings')}</h3>
     <div class="mrow"><span>${t('langLabel')}</span><button class="mbtn half ${L === 'zh' ? 'sel' : ''}" data-l="zh">繁體中文</button><button class="mbtn half ${L === 'en' ? 'sel' : ''}" data-l="en">English</button></div>
     <button class="mbtn" id="vo">${t('voice', state.settings.voice)}</button>
+    <button class="mbtn" id="tv">${t('testVoice')}</button><div class="mnote" id="tvr"></div>
     <button class="mbtn danger" id="rs">${t('reset')}</button>
     <button class="mbtn ok" id="cl">${t('close')}</button></div>`;
   stage.appendChild(m);
   m.querySelectorAll('[data-l]').forEach((b) => { b.onclick = () => { sfx.tap(); chooseLang(b.dataset.l); showHome(); showSettings(); }; });
   m.querySelector('#vo').onclick = (e) => { state.settings.voice = !state.settings.voice; save(); e.currentTarget.textContent = t('voice', state.settings.voice); };
+  m.querySelector('#tv').onclick = async () => {
+    unlockAudio(); resetVoiceProbe();
+    const was = state.settings.voice; state.settings.voice = true;
+    const r = m.querySelector('#tvr'); r.textContent = '…';
+    await speak(t('testSay'));
+    state.settings.voice = was;
+    const info = voiceInfo();
+    r.textContent = (info.started ? t('voiceOk') : t('voiceBad')) + `（${info.count} voices${info.zh ? ' · ' + info.zh : ''}）`;
+  };
   let armed = false;
   m.querySelector('#rs').onclick = (e) => {
     if (!armed) { armed = true; e.currentTarget.textContent = t('resetConfirm'); return; }

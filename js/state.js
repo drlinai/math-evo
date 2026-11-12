@@ -1,6 +1,6 @@
 // 存檔、等級經驗、升級卡池
-import { LINES, formOf } from './characters.js';
-import { setLang, detectLang, formNameOf, upText } from './i18n.js';
+import { LINES, formOf } from './characters.js?v=1';
+import { setLang, detectLang, formNameOf, upText } from './i18n.js?v=1';
 
 const KEY = 'math-evo-save-v1';
 export const CHAR_IDS = ['dino', 'sea', 'boy'];
@@ -19,8 +19,11 @@ export function load() {
       state.current = raw.current ?? null;
       CHAR_IDS.forEach((id) => { state.chars[id] = { ...blank(), ...(raw.chars?.[id] || {}) }; });
       Object.assign(state.settings, raw.settings || {});
+      // 設定版本 2：語音與音樂一律回到「開」（之前可能被關掉）
+      if (state.settings.sv !== 2) { state.settings.voice = true; state.settings.music = true; }
     }
   } catch (e) { /* 壞檔就用新檔 */ }
+  state.settings.sv = 2;
   setLang(state.settings.lang || detectLang());
 }
 export function save() {
