@@ -38,7 +38,12 @@ SHEETS = {
                    names=['claw1', 'claw2', 'claw3', 'shield1', 'fang1', 'fang2', 'fang3', 'shield2',
                           'sword1', 'sword2', 'sword3', 'shield3', 'fire', 'ice', 'thunder', 'pets3']),
     'items': dict(file='07_items.jpeg', mode='grid', cols=5, rows=5, maxh=220, names=ITEM_NAMES),
+    # 夥伴：上排 3 個骷髏兵、下排 3 個樹精（這張圖還沒放進 art_src 時會自動跳過）
+    'buddies': dict(file='13_buddies.jpeg', mode='grid', cols=3, rows=2, maxh=300,
+                    names=['skel1', 'skel2', 'skel3', 'tree1', 'tree2', 'tree3']),
 }
+# 圖集裡有、但遊戲已經不用的圖形（盾牌與武器升級卡已取消）
+SKIP = {'claw1', 'claw2', 'claw3', 'fang1', 'fang2', 'fang3', 'sword1', 'sword2', 'sword3', 'shield1', 'shield2', 'shield3'}
 BACKGROUNDS = {'bg_dino': '08_bg_dino.jpeg', 'bg_sea': '09_bg_sea.jpeg', 'bg_boy': '10_bg_boy.jpeg',
                'bg_battle': '11_bg_battle.jpeg', 'bg_title': '12_bg_title.jpeg'}
 
@@ -94,6 +99,8 @@ def scan():
     os.makedirs(DBG, exist_ok=True)
     report = {}
     for key, cfg in SHEETS.items():
+        if not os.path.exists(os.path.join(SRC, cfg['file'])):
+            continue
         rgb = load(cfg['file'])
         aw, lab, exposed = analyse(rgb)
         res = candidates(rgb, aw, lab, exposed)
@@ -225,10 +232,15 @@ def build():
     holes = json.load(open(HOLES_FILE)) if os.path.exists(HOLES_FILE) else {}
     meta = {}
     for key, cfg in SHEETS.items():
+        if not os.path.exists(os.path.join(SRC, cfg['file'])):
+            print(key, 'skipped (no source image)')
+            continue
         rgb = load(cfg['file'])
         col, alpha = cutout(rgb, holes.get(key, []))
         owner = split(alpha, cfg)
         for i, name in enumerate(cfg['names']):
+            if name in SKIP:
+                continue
             mask = owner == i
             if name in STRICT:
                 # 描邊很淺的白色圖形：用更嚴格的門檻重新去背，避免背景滲進圖形內部
@@ -271,7 +283,7 @@ def sheet():
     os.makedirs(DBG, exist_ok=True)
     names = sorted(f[:-5] for f in os.listdir(OUT) if f.endswith('.webp') and not f.startswith('bg_'))
     groups = {'chars': [n for n in names if n[:-1] in ('dino', 'sea', 'boy')], 'monsters': [n for n in names if n.startswith('m_')],
-              'gear': [n for n in names if n[:-1] in ('crown', 'wings', 'cape', 'shield', 'claw', 'fang', 'sword', 'pets') or n in ('aura', 'fire', 'ice', 'thunder', 'ic_strong', 'ic_tall')]}
+              'gear': [n for n in names if n[:-1] in ('crown', 'wings', 'cape', 'pets', 'skel', 'tree') or n in ('aura', 'fire', 'ice', 'thunder', 'ic_strong', 'ic_tall')]}
     groups['items'] = [n for n in names if n not in sum(groups.values(), [])]
     for g, lst in groups.items():
         cell = 300 if g in ('chars', 'monsters') else 190

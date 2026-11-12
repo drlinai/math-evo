@@ -82,12 +82,9 @@ export const t = (key, ...args) => { const v = S[lang][key]; return typeof v ===
 const D = {
   zh: {
     forms: { dino: ['小暴龍', '狂牙暴龍', '鋼甲暴龍', '黃金帝王龍'], sea: ['小海怪', '浪花海蛇', '深海巨蛇', '海皇大海怪'], boy: ['小男孩', '見習劍士', '閃電騎士', '傳說勇者'] },
-    weapon: { dino: '利爪強化', sea: '尖牙強化', boy: '寶劍強化' },
     up: {
       strong: ['變強壯', ['身體變得更壯！', '肌肉更大了！', '壯得像座山！', '超級大力士！', '無敵壯！']],
       tall: ['長高高', ['長高了一點！', '又長高了！', '越來越高大！', '高人一等！', '巨人等級！']],
-      armor: ['守護盾牌', ['拿到木頭盾牌！', '換成鋼鐵盾牌！', '閃亮的黃金盾牌！']],
-      weapon: [null, ['變得更銳利！', '閃著金光！', '發出神秘藍光！']],
       aura: ['能量光環', ['身邊出現藍色光環！', '光環變成紫色！', '金色的王者光環！']],
       cape: ['英雄披風', ['披上紅色披風！', '藍色的騎士披風！', '紫金色的皇家披風！']],
       crown: ['王者皇冠', ['戴上小皇冠！', '鑲著紅寶石的銀皇冠！', '閃亮的黃金大皇冠！']],
@@ -95,19 +92,20 @@ const D = {
       fire: ['火焰之力', ['一顆火球繞著你轉！', '兩顆火球！', '三顆火球超威風！']],
       ice: ['冰雪之力', ['一片雪花繞著你轉！', '兩片雪花！', '三片雪花好酷！']],
       thunder: ['閃電之力', ['一道閃電繞著你轉！', '兩道閃電！', '三道閃電劈哩啪啦！']],
-      pet: ['小夥伴', ['來了一個會飛的史萊姆夥伴！', '粉紅色的夥伴也來了！', '三個夥伴到齊了！']],
+      pet: ['夥伴：史萊姆', ['來了一個會飛的史萊姆夥伴！', '粉紅色的史萊姆也來了！', '三隻史萊姆到齊了！']],
+      skel: ['夥伴：骷髏兵', ['來了一個骷髏兵夥伴！', '又來一個骷髏兵！', '三個骷髏兵到齊了！']],
+      tree: ['夥伴：樹精', ['來了一個樹精夥伴！', '又來一個樹精！', '三個樹精到齊了！']],
+      clone: ['分身術', ['變出一個分身！', '變出兩個分身！', '三個分身一起上！']],
+      ki: ['超級氣焰', ['全身冒出白色的氣焰！', '氣焰變成金色！', '金色氣焰加上閃電！']],
     },
     monsters: { slime: '暗影史萊姆', bat: '尖牙蝙蝠', imp: '搗蛋小惡魔', golem: '岩石巨人', ghost: '嚇人幽靈', shroom: '毒蘑菇怪', king: '黑暗魔王', dragon: '暗黑邪龍' },
     stages: { apple: '蘋果籃子', pig: '小豬豬圈', duck: '鴨子池塘', bird: '小鳥大樹', fish: '小魚海洋', chick: '小雞雞舍', frog: '青蛙荷葉', butterfly: '蝴蝶花園', egg: '恐龍蛋窩', cookie: '餅乾盤子', balloon: '氣球派對', car: '停車場', candy: '糖果罐', piggy: '存錢筒', count5: '數硬幣', shop: '小商店', change: '買東西找錢', fill: '裝滿盒子', number: '數字算式' },
   },
   en: {
     forms: { dino: ['Baby Rex', 'Fang Rex', 'Steel Rex', 'Golden Emperor Rex'], sea: ['Baby Serpent', 'Wave Serpent', 'Deep-Sea Serpent', 'Sea Emperor'], boy: ['Little Boy', 'Sword Trainee', 'Thunder Knight', 'Legendary Hero'] },
-    weapon: { dino: 'Sharper Claws', sea: 'Sharper Fangs', boy: 'Stronger Sword' },
     up: {
       strong: ['Get Stronger', ['Your body gets stronger!', 'Bigger muscles!', 'Strong as a mountain!', 'Super strong!', 'Unbeatable!']],
       tall: ['Grow Taller', ['You grew a little!', 'Even taller!', 'Getting really big!', 'Taller than everyone!', 'Giant size!']],
-      armor: ['Guardian Shield', ['A wooden shield!', 'A steel shield!', 'A shiny golden shield!']],
-      weapon: [null, ['Sharper than before!', 'Shining gold!', 'Glowing magic blue!']],
       aura: ['Energy Aura', ['A blue aura appears!', 'The aura turns purple!', 'A golden royal aura!']],
       cape: ['Hero Cape', ['A red cape!', 'A blue knight cape!', 'A royal purple and gold cape!']],
       crown: ['Royal Crown', ['A little crown!', 'A silver crown with a ruby!', 'A big shiny gold crown!']],
@@ -115,7 +113,11 @@ const D = {
       fire: ['Power of Fire', ['A fireball circles you!', 'Two fireballs!', 'Three fireballs! So cool!']],
       ice: ['Power of Ice', ['A snowflake circles you!', 'Two snowflakes!', 'Three snowflakes! So cool!']],
       thunder: ['Power of Thunder', ['A lightning bolt circles you!', 'Two lightning bolts!', 'Three lightning bolts! Zap!']],
-      pet: ['Little Buddy', ['A flying slime buddy joins you!', 'A pink buddy joins too!', 'All three buddies are here!']],
+      pet: ['Buddy: Slime', ['A flying slime buddy joins you!', 'A pink slime joins too!', 'All three slimes are here!']],
+      skel: ['Buddy: Skeleton', ['A skeleton buddy joins you!', 'Another skeleton!', 'All three skeletons are here!']],
+      tree: ['Buddy: Tree Sprite', ['A tree sprite joins you!', 'Another tree sprite!', 'All three tree sprites are here!']],
+      clone: ['Shadow Clones', ['You make one clone!', 'You make two clones!', 'Three clones attack together!']],
+      ki: ['Super Aura', ['A white aura blazes around you!', 'The aura turns gold!', 'Golden aura with lightning!']],
     },
     monsters: { slime: 'Shadow Slime', bat: 'Fang Bat', imp: 'Naughty Imp', golem: 'Rock Golem', ghost: 'Spooky Ghost', shroom: 'Poison Mushroom', king: 'Dark King', dragon: 'Shadow Dragon' },
     stages: { apple: 'Apple Basket', pig: 'Piggy Pen', duck: 'Duck Pond', bird: 'Bird Tree', fish: 'Fish Sea', chick: 'Chick Coop', frog: 'Frog Pond', butterfly: 'Butterfly Garden', egg: 'Dino Egg Nest', cookie: 'Cookie Plate', balloon: 'Balloon Party', car: 'Parking Lot', candy: 'Candy Jar', piggy: 'Piggy Bank', count5: 'Count Coins', shop: 'Little Shop', change: 'Shopping Change', fill: 'Fill the Box', number: 'Number Math' },
@@ -124,4 +126,4 @@ const D = {
 export const formNameOf = (id, form) => D[lang].forms[id][form];
 export const monsterName = (id) => D[lang].monsters[id];
 export const stageTitle = (id) => D[lang].stages[id];
-export const upText = (upId, charId) => { const [name, desc] = D[lang].up[upId]; return { name: name ?? D[lang].weapon[charId], desc }; };
+export const upText = (upId) => { const [name, desc] = D[lang].up[upId]; return { name, desc }; };

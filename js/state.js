@@ -1,6 +1,6 @@
 // 存檔、等級經驗、升級卡池
-import { formOf, upIcon } from './sprites.js?v=3';
-import { setLang, detectLang, formNameOf, upText } from './i18n.js?v=3';
+import { formOf, upIcon, upReady } from './sprites.js?v=7';
+import { setLang, detectLang, formNameOf, upText } from './i18n.js?v=7';
 
 const KEY = 'math-evo-save-v1';
 export const CHAR_IDS = ['dino', 'sea', 'boy'];
@@ -17,7 +17,10 @@ export function load() {
     const raw = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (raw) {
       state.current = raw.current ?? null;
-      CHAR_IDS.forEach((id) => { state.chars[id] = { ...blank(), ...(raw.chars?.[id] || {}) }; });
+      CHAR_IDS.forEach((id) => {
+        state.chars[id] = { ...blank(), ...(raw.chars?.[id] || {}) };
+        Object.keys(state.chars[id].up).forEach((k) => { if (!UPGRADES.some((u) => u.id === k)) delete state.chars[id].up[k]; }); // 已取消的卡（盾牌、武器）
+      });
       Object.assign(state.settings, raw.settings || {});
       // 設定版本 2：語音與音樂一律回到「開」（之前可能被關掉）
       if (state.settings.sv !== 2) { state.settings.voice = true; state.settings.music = true; }
@@ -40,8 +43,6 @@ export const formName = (id, level) => formNameOf(id, formOf(level));
 export const UPGRADES = [
   { id: 'strong', max: 5, color: '#ff7a59' },
   { id: 'tall', max: 5, color: '#4fc38a' },
-  { id: 'armor', max: 3, color: '#8f9db0' },
-  { id: 'weapon', max: 3, color: '#e8483f' },
   { id: 'aura', max: 3, color: '#7fd4ff' },
   { id: 'cape', max: 3, color: '#ff5b5b' },
   { id: 'crown', max: 3, color: '#ffc93c' },
@@ -50,6 +51,10 @@ export const UPGRADES = [
   { id: 'ice', max: 3, color: '#7fd4ff' },
   { id: 'thunder', max: 3, color: '#ffd43a' },
   { id: 'pet', max: 3, color: '#ff9ecb' },
+  { id: 'skel', max: 3, color: '#aab6c6' },
+  { id: 'tree', max: 3, color: '#6fbf5a' },
+  { id: 'clone', max: 3, color: '#9a86ff' },
+  { id: 'ki', max: 3, color: '#ffc21a' },
 ];
 // 取得目前語言的卡片資訊；tier=要顯示第幾階的圖（皇冠、翅膀…每一階長得不一樣）
 export function upInfo(u, charId, tier = 1) {
@@ -58,7 +63,7 @@ export function upInfo(u, charId, tier = 1) {
 }
 export function drawCards(charId) {
   const ch = state.chars[charId];
-  const pool = UPGRADES.filter((u) => (ch.up[u.id] || 0) < u.max);
+  const pool = UPGRADES.filter((u) => (ch.up[u.id] || 0) < u.max && upReady(u.id));
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   return pool.slice(0, 3).map((u) => upInfo(u, charId, (ch.up[u.id] || 0) + 1));
 }

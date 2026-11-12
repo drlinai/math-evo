@@ -243,6 +243,15 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .flapR { animation: flapR .8s ease-in-out infinite alternate; transform-origin: 0 0; }
 @keyframes flapL { to { transform: rotate(16deg); } } @keyframes flapR { to { transform: rotate(16deg); } }
 .hop { animation: hop .9s ease-in-out infinite; }
+/* 分身：半透明、左右微微晃動 */
+.clone { opacity: .42; animation: clone 1.6s ease-in-out infinite alternate; }
+@keyframes clone { from { transform: translateX(-5px); opacity: .3; } to { transform: translateX(5px); opacity: .5; } }
+/* 氣焰：火焰往上竄 */
+.ki { animation: ki .26s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.ki2 { animation-duration: .19s; animation-direction: alternate-reverse; }
+@keyframes ki { from { transform: scale(.97, .95) skewX(-2deg); } to { transform: scale(1.03, 1.07) skewX(2deg); } }
+.kirise { animation: kirise 1.1s linear infinite; }
+@keyframes kirise { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: .9; } 100% { transform: translateY(var(--h, -300px)); opacity: 0; } }
 @keyframes hop { 50% { transform: translateY(-16px) scale(.96, 1.06); } }
 .swirl { animation: swirl 1.6s linear infinite; }
 @keyframes swirl { to { stroke-dashoffset: -152; } }
