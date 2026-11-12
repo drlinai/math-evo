@@ -1,0 +1,5 @@
+art_src/
+tools/.venv/
+tools/debug/
+art_prompts.md
+.DS_Store

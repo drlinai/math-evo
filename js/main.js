@@ -1,9 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=2';
-import { charSVG, MONSTERS, BOSSES, monsterSVG } from './characters.js?v=2';
-import { sceneSVG, battleScene } from './scenes.js?v=2';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=2';
-import { pickStages } from './questions.js?v=2';
-import { t, getLang, num, monsterName, stageTitle } from './i18n.js?v=2';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=3';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=3';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=3';
+import { pickStages } from './questions.js?v=3';
+import { t, getLang, num, monsterName, stageTitle } from './i18n.js?v=3';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -125,7 +124,7 @@ function showSelect() {
 function showHome() {
   run++;
   const id = state.current, ch = cur(), need = xpNeed(ch.level), pending = ch.xp >= need;
-  const badges = UPGRADES.filter((u) => ch.up[u.id]).map((u) => { const i = upInfo(u, id); return `<span class="badge" style="--c:${u.color}">${i.icon}<b>${ch.up[u.id]}</b></span>`; }).join('');
+  const badges = UPGRADES.filter((u) => ch.up[u.id]).map((u) => { const i = upInfo(u, id, ch.up[u.id]); return `<span class="badge" style="--c:${u.color}">${i.icon}<b>${ch.up[u.id]}</b></span>`; }).join('');
   const nextEvo = ch.level < 15 ? t('evoIn', 5 - (ch.level % 5)) : t('finalForm');
   screen('home', `<div class="bg">${sceneSVG(id)}</div>
     <div class="topbar"><button class="rbtn" id="sw">🔄<small>${t('sw')}</small></button><span class="grow"></span>
@@ -456,6 +455,7 @@ function transform(id, before, ch, evo, card) {
 
 // ---- 啟動 ----
 load();
+preloadArt();
 fit();
 showTitle();
 // 開發除錯用
