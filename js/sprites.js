@@ -1,6 +1,6 @@
 // 圖片版美術：角色、怪物、升級配件都用 img/*.webp（由 tools/process_art.py 從 art_src 產生）
 // 對外介面與舊的 characters.js（程式畫的 SVG）相同，所以遊戲其他部分不用改。
-import { ART } from './art-meta.js?v=8';
+import { ART } from './art-meta.js?v=9';
 
 const AV = 1; // 圖片版本：換圖時 +1，避免瀏覽器用到舊圖
 export const src = (name) => `img/${name}.webp?a=${AV}`;
