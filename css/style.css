@@ -10,6 +10,9 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .scene-img { width: 100%; height: 100%; display: block; object-fit: cover; pointer-events: none; }
 /* 圖片小圖示：題目裡的東西、關卡圖示、升級卡圖示 */
 .pic, .ico { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+/* 圓框、方框裡的圖示要給固定大小，否則瘦高的圖（長高箭頭、氣球、冰淇淋）會撐出框外 */
+.badge .ico { width: 42px; height: 42px; }
+.sdot .pic { width: 42px; height: 42px; }
 .pic.inl { display: inline-block; width: auto; height: 1.35em; vertical-align: -.32em; margin: 0 3px; }
 .char-svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
