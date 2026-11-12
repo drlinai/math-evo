@@ -150,8 +150,9 @@ function showSettings() {
 }
 
 // =====================================================================
-//  任務：3 關 × 3 題
+//  任務：3 關 × 每關 PER_STAGE 題
 // =====================================================================
+const PER_STAGE = 2; // 每關題數
 async function mission(w, chk) {
   const id = state.current, ch = cur();
   const plan = pickStages(ch.level);
@@ -172,8 +173,8 @@ async function mission(w, chk) {
     stage.querySelectorAll('.sdot').forEach((d, i) => d.classList.toggle('on', i === si));
     $('#ptext').innerHTML = ''; $('#qscene').innerHTML = ''; $('#answers').innerHTML = '';
     await w(banner(`第 ${si + 1} 關`, `${st.icon} ${st.title}`, `第${zh(si + 1)}關，${st.title}！`));
-    for (let qi = 0; qi < 3; qi++) {
-      $('#pips').innerHTML = [0, 1, 2].map((k) => `<i class="${k < qi ? 'done' : k === qi ? 'now' : ''}"></i>`).join('');
+    for (let qi = 0; qi < PER_STAGE; qi++) {
+      $('#pips').innerHTML = Array.from({ length: PER_STAGE }, (_, k) => k).map((k) => `<i class="${k < qi ? 'done' : k === qi ? 'now' : ''}"></i>`).join('');
       const q = st.gen(ch.level, qi);
       const ok1 = await w(ask(q));
       total++; if (ok1) first++;
@@ -182,7 +183,7 @@ async function mission(w, chk) {
     sfx.star();
   }
   // 結算
-  const gain = first * 12 + (total - first) * 6 + 44;
+  const gain = first * 18 + (total - first) * 9 + 46; // 每組 6 題：全對 154、最少 100（Lv.1 一組必升級）
   ch.xp += gain; ch.missions++; save();
   await w(result(first, total, gain));
   if (ch.xp >= xpNeed(ch.level)) await levelUps(w, chk); else showHome();
