@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>升級卡效果總覽</title>
+<link rel="stylesheet" href="css/style.css?v=25" />
+<style>
+  html, body { overflow: auto; height: auto; background: #2a1f5c; color: #fff; }
+  body { padding: 10px 12px 60px; }
+  h1 { font-size: 26px; margin: 6px 0; } p.tip { font-size: 16px; font-weight: 600; opacity: .85; margin-bottom: 8px; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  nav a { padding: 6px 12px; border-radius: 14px; background: #fff; color: #2b2140; font-size: 17px; text-decoration: none; }
+  nav a.on { background: #ffd43a; }
+  h2 { font-size: 24px; margin: 18px 0 8px; padding: 4px 12px; background: #ffd43a; color: #2b2140; border-radius: 12px; display: inline-block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--cell, 170px), 1fr)); gap: 8px; }
+  .cell { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: linear-gradient(#bfe6ff 0, #e9f7d8 70%, #b9dc98 100%); border: 3px solid #2b2140; }
+  .cell.dark { background: linear-gradient(#3b2f7a, #6a57b8 70%, #3d6a4a); }
+  .cell .no { position: absolute; left: 0; top: 0; z-index: 3; padding: 2px 8px; font-size: 17px; background: #2b2140; color: #ffd43a; border-radius: 0 0 12px 0; }
+  .cell .nm { position: absolute; right: 0; bottom: 0; z-index: 3; padding: 1px 7px; font-size: 14px; background: rgba(43, 33, 64, .8); color: #fff; border-radius: 10px 0 0 0; }
+  .cell .ch { position: absolute; inset: 4px 4px 2px; }
+</style>
+</head>
+<body>
+<h1>升級卡效果總覽</h1>
+<p class="tip">編號＝「角色型態-號碼」，例如 <b>龍1-07</b>。網址可加 ?c=dino|sea|boy、?f=1~4（型態）、?view=home（主畫面的固定鏡頭）、?dark=1（深色底）。</p>
+<nav id="nav"></nav>
+<div id="out"></div>
+<script type="module">
+import { charSVG, preloadArt } from './js/sprites.js?v=25';
+const q = new URLSearchParams(location.search), onlyC = q.get('c'), onlyF = q.get('f'), home = q.get('view') === 'home', dark = q.get('dark'), onlyU = q.get('u'), tight = q.get('tight');
+if (q.get('cell')) document.documentElement.style.setProperty('--cell', q.get('cell') + 'px');
+const CH = [['dino', '龍', '小暴龍'], ['sea', '海', '海龍'], ['boy', '男', '勇者']];
+const UPS = [['crown', '皇冠', 3], ['wings', '翅膀', 3], ['cape', '披風', 3], ['strong', '變壯', 5], ['tall', '長高', 5], ['aura', '光環', 3], ['ki', '賽亞人之火', 3],
+  ['fire', '火', 3], ['ice', '冰', 3], ['thunder', '雷', 3], ['pet', '史萊姆', 3], ['skel', '骷髏兵', 3], ['tree', '樹精', 3], ['clone', '分身術', 3]];
+const nav = document.getElementById('nav'), out = document.getElementById('out');
+const link = (label, c, f) => { const p = new URLSearchParams(q); c ? p.set('c', c) : p.delete('c'); f ? p.set('f', f) : p.delete('f'); return `<a class="${(onlyC || '') === (c || '') && (onlyF || '') === (f || '') ? 'on' : ''}" href="?${p}">${label}</a>`; };
+nav.innerHTML = link('全部') + CH.map(([c, k]) => [1, 2, 3, 4].map((f) => link(`${k}${f}`, c, String(f))).join('')).join('');
+let html = '';
+for (const [id, k, zh] of CH) {
+  if (onlyC && onlyC !== id) continue;
+  for (let form = 0; form < 4; form++) {
+    if (onlyF && +onlyF !== form + 1) continue;
+    const level = Math.max(1, form * 5), tag = `${k}${form + 1}`;
+    // 前面幾種（貼在身上的、變大的）用同一個鏡頭拍，才比得出大小；夥伴、分身、氣焰要拉遠才拍得到，各自取景
+    const BIG = { level, up: { strong: 5, tall: 5 } }, SAME = ['crown', 'wings', 'cape', 'strong', 'tall', 'aura', 'fire', 'ice', 'thunder'];
+    const cell = (no, name, up, same) => `<div class="cell ${dark ? 'dark' : ''}"><span class="no">${tag}-${String(no).padStart(2, '0')}</span><span class="nm">${name}</span><div class="ch">${charSVG(id, { level, up }, home ? {} : same && !tight ? { fit: true, cam: BIG } : { fit: true })}</div></div>`;
+    let n = 0, cells = onlyU ? '' : cell(0, '原本', {}, true);
+    for (const [u, name, max] of UPS) for (let t = 1; t <= max; t++) { n++; if (!onlyU || onlyU.split(',').includes(u)) cells += cell(n, `${name} ${t}`, { [u]: t }, SAME.includes(u)); }
+    if (onlyU) { html += cells; continue; }
+    cells += cell(++n, '皇冠3+翅膀3+披風3', { crown: 3, wings: 3, cape: 3 });
+    cells += cell(++n, '變壯5+長高5', { strong: 5, tall: 5 }, true);
+    cells += cell(++n, '全部最高階', Object.fromEntries(UPS.map(([u, , max]) => [u, max])));
+    html += `<h2>${tag}　${zh}・第 ${form + 1} 型態</h2><div class="grid">${cells}</div>`;
+  }
+}
+out.innerHTML = onlyU ? `<div class="grid">${html}</div>` : html;
+preloadArt();
+</script>
+</body>
+</html>

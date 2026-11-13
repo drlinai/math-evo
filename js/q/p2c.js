@@ -1,7 +1,7 @@
 // 小二下 LV3（新加坡 P2 Term 3）：40 種題型。兩步驟應用題、3 和 4 的乘法表、元和分的小數點寫法、分母 12 以內的分數。
 // 每個題型只是「概念」：故事、人名、東西、數字每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, who, who2, sayOf, FOODS } from './core.js?v=23';
-import { items, grp, row, col, fig, emo, ncard, pic, seq, bigEq, groups, array, table, note, cash, sgd, change, frac, fr, modelPW, modelCmp, svg, COLORS } from './vis.js?v=23';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, who, who2, sayOf, FOODS } from './core.js?v=25';
+import { items, grp, row, col, fig, emo, ncard, pic, seq, bigEq, groups, array, table, note, cash, sgd, change, frac, fr, modelPW, modelCmp, svg, COLORS } from './vis.js?v=25';
 
 const T = { word: ['兩步驟應用題', 'Two-step word problems', '🧩'], times: ['乘法表', 'Times tables', '✖️'], money: ['錢', 'Money', '💰'], frac: ['分數', 'Fractions', '🍕'], bonus: ['加分題', 'Bonus', '⭐'] };
 const INK = '#2b2140', CK = Object.keys(COLORS), anyColor = () => COLORS[pick(CK)].c;

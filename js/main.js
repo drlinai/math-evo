@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=23';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=23';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=23';
-import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=23';
-import { t, getLang, monsterName } from './i18n.js?v=23';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=25';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=25';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=25';
+import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=25';
+import { t, getLang, monsterName } from './i18n.js?v=25';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -592,7 +592,7 @@ function transform(id, before, ch, evo, card) {
     const name = formName(id, ch.level);
     screen('transform', `<div class="bg dim2">${sceneSVG(id)}</div><div class="rays ${evo ? 'big' : ''}"></div>
       <div class="x-title">${evo ? t('evolving') : t('rising')}</div>
-      <div class="x-hero charging ${evo ? 'evo' : ''}" id="xhero">${charSVG(id, before, { fit: 'form' })}</div>
+      <div class="x-hero charging ${evo ? 'evo' : ''}" id="xhero">${charSVG(id, before, { fit: 'form', cam: ch })}</div>
       <div class="flash" id="flash"></div>
       <div class="x-info" id="xinfo"></div>`);
     sfx.charge();
@@ -602,8 +602,9 @@ function transform(id, before, ch, evo, card) {
       evo ? sfx.evolve() : sfx.levelup();
       await sleep(280);
       const h = $('#xhero');
-      h.className = 'x-hero reveal';
-      h.innerHTML = charSVG(id, ch, { fit: 'form' });
+      // 前後比對：升級前的樣子變成半透明、慢慢淡掉；升級後的樣子在同一個位置浮現（兩張用同一個鏡頭拍，大小才比得出來）
+      h.className = 'x-hero';
+      h.innerHTML = `<div class="x-old">${charSVG(id, before, { fit: 'form', cam: ch })}</div><div class="x-new">${charSVG(id, ch, { fit: 'form' })}</div>`;
       confetti(evo ? 80 : 40);
       $('.x-title').textContent = evo ? t('evoDone') : `Lv.${ch.level}！`;
       const info = $('#xinfo');

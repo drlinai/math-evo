@@ -1,6 +1,6 @@
 // 圖片版美術：角色、怪物、升級配件都用 img/*.webp（由 tools/process_art.py 從 art_src 產生）
 // 對外介面與舊的 characters.js（程式畫的 SVG）相同，所以遊戲其他部分不用改。
-import { ART } from './art-meta.js?v=23';
+import { ART } from './art-meta.js?v=25';
 
 const AV = 1; // 圖片版本：換圖時 +1，避免瀏覽器用到舊圖
 export const src = (name) => `img/${name}.webp?a=${AV}`;
@@ -137,23 +137,32 @@ function orbitOv(up, cx, cy, H) {
   return s ? `<g transform="translate(${cx},${cy})">${s}</g>` : '';
 }
 
+const X = 250, Y = 456; // 角色腳底在畫面上的位置
+// 變壯、長高的放大倍率 [寬, 高]：每一階都要看得出差別
+const grow = (up) => { const st = up.strong || 0, tl = up.tall || 0; return [1 + 0.08 * st, (1 + 0.07 * tl) * (1 + 0.01 * st)]; }; // 最多 5 階：寬 1.4 倍、高 1.42 倍
+// 取景框：身邊的夥伴、分身、氣焰也要入鏡
+function camBox(id, form, up, fit) {
+  const F = FORMS[id][form], [sx, sy] = grow(up), H = F.h, W = H * aspect(id + form), Hpx = H * sy, Wpx = W * sx;
+  const side = Math.max(up.pet ? 150 : 0, up.skel ? 60 + up.skel * 100 : 0, up.tree ? 120 + up.tree * 50 : 0, up.clone ? Wpx * 1.15 : 0, up.ki ? Wpx * 0.3 + 90 : 0);
+  const tall = up.ki ? Hpx * 0.5 + 60 : 0;
+  const size = fit === 'form' ? Math.max((H + 90) * 1.3 + tall, (W + 70) * 1.3 + side * 0.6) : Math.max(Hpx + 80 + tall, Wpx + 70 + side);
+  return `${(X - size / 2).toFixed(0)} ${(Y - size + 30).toFixed(0)} ${size.toFixed(0)} ${size.toFixed(0)}`;
+}
+// 主畫面的固定鏡頭（500×500）；角色長到快頂出畫面時，鏡頭稍微拉遠
+function homeBox(id, form, up) {
+  const F = FORMS[id][form], [sx, sy] = grow(up), size = Math.max(500, F.h * sy + 50, F.h * aspect(id + form) * sx + 40);
+  return `${(250 - size / 2).toFixed(0)} ${(500 - size).toFixed(0)} ${size.toFixed(0)} ${size.toFixed(0)}`;
+}
 export function charSVG(id, ch, o = {}) {
   const uid = ++UID;
   const form = o.form ?? formOf(ch.level), up = o.up ?? ch.up ?? {};
   const F = FORMS[id][form], name = id + form;
-  const st = up.strong || 0, tl = up.tall || 0;
-  const sx = 1 + 0.05 * st, sy = (1 + 0.045 * tl) * (1 + 0.01 * st);
+  const [sx, sy] = grow(up);
   const H = F.h, W = H * aspect(name);            // 還沒放大前的顯示尺寸
-  const X = 250, Y = 456, Hpx = H * sy, Wpx = W * sx, cy = Y - Hpx * 0.5;
+  const Hpx = H * sy, Wpx = W * sx, cy = Y - Hpx * 0.5;
   // 取景：fit=貼身（標題/選角/小頭像）；'form'=依型態取景看得出長大；否則固定鏡頭（主畫面）
-  let vb = '0 0 500 500';
-  if (o.fit) {
-    // 身邊的夥伴、分身、氣焰也要入鏡
-    const side = Math.max(up.pet ? 150 : 0, up.skel ? 60 + up.skel * 100 : 0, up.tree ? 120 + up.tree * 50 : 0, up.clone ? Wpx * 1.15 : 0, up.ki ? Wpx * 0.3 + 90 : 0);
-    const tall = up.ki ? Hpx * 0.5 + 60 : 0;
-    const size = o.fit === 'form' ? Math.max((H + 90) * 1.3 + tall, (W + 70) * 1.3 + side * 0.6) : Math.max(Hpx + 80 + tall, Wpx + 70 + side);
-    vb = `${(X - size / 2).toFixed(0)} ${(Y - size + 30).toFixed(0)} ${size.toFixed(0)} ${size.toFixed(0)}`;
-  }
+  //   cam：用「另一個狀態」的取景框來拍（升級前後要疊在一起比對，鏡頭必須一樣）
+  const vb = o.fit ? camBox(id, o.cam ? formOf(o.cam.level) : form, o.cam ? o.cam.up || {} : up, o.fit) : homeBox(id, form, up);
   const ax = (fx) => -W / 2 + fx * W, ay = (fy) => -H + fy * H;
   const [bx, by] = [ax(F.back[0]), ay(F.back[1])];
   let s = `<svg viewBox="${vb}" class="char-svg" xmlns="http://www.w3.org/2000/svg" overflow="visible">`;
