@@ -8,8 +8,8 @@
 //   full    答對後秀出的完整句子（HTML） fullSay  答對後唸的句子
 //   hint    第一次答錯時唸的提示  count  答錯時要標上 1、2、3… 的元素（CSS 選擇器）
 //   beats   唸完題目後要敲幾下聲音（數聲音的題目）
-import { getLang } from '../i18n.js?v=19';
-import { icon } from '../sprites.js?v=19';
+import { getLang } from '../i18n.js?v=21';
+import { icon } from '../sprites.js?v=21';
 
 // ---------- 語言 ----------
 export const EN = () => getLang() === 'en';
@@ -62,9 +62,9 @@ export const things2 = (keys = Object.keys(THINGS)) => sample(keys, 2).map((k) =
 // 「3 顆蘋果」／「3 apples」
 export const cnt = (n, it) => L(`${n} ${it.m}${it.zh}`, `${n} ${pl(n, it.en, it.ens)}`);
 
-// ---------- 應用題的人名（新加坡常見）----------
+// ---------- 應用題的人名----------
 const PEOPLE = [
-  { zh: '阿里', en: 'Ali', g: 'm' }, { zh: '美玲', en: 'Mei Ling', g: 'f' }, { zh: '西蒂', en: 'Siti', g: 'f' }, { zh: '拉朱', en: 'Raju', g: 'm' },
+  { zh: '阿里', en: 'Ali', g: 'm' }, { zh: '美玲', en: 'Mei Ling', g: 'f' }, { zh: '西蒂', en: 'Siti', g: 'f' }, { zh: '威廉', en: 'William', g: 'm' }, { zh: '連恩', en: 'Liam', g: 'm' }, { zh: '瑞斯', en: 'Rex', g: 'm' }, { zh: '吉賽兒', en: 'Giselle', g: 'f' },
   { zh: '小班', en: 'Ben', g: 'm' }, { zh: '湯姆', en: 'Tom', g: 'm' }, { zh: '琳娜', en: 'Lina', g: 'f' }, { zh: '小肯', en: 'Ken', g: 'm' }, { zh: '艾咪', en: 'Amy', g: 'f' },
 ];
 const person = (p) => ({ ...p, n: L(p.zh, p.en), he: p.g === 'm' ? 'he' : 'she', He: p.g === 'm' ? 'He' : 'She', his: p.g === 'm' ? 'his' : 'her', him: p.g === 'm' ? 'him' : 'her', ta: p.g === 'm' ? '他' : '她' });

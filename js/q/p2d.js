@@ -1,7 +1,7 @@
 // 小二下 LV4（新加坡 P2 Term 4）：41 種題型。公升、有比例的圖畫統計圖、平面圖形的型式、五種立體，最後總複習。
 // 每個題型只是「概念」：容器、主題、人名、顏色、數字每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, who } from './core.js?v=19';
-import { row, col, fig, emo, label, seq, bigEq, shape, solid, jug, glass, pgraph, tally, table, svg, COLORS, SOLIDS, cname, sname, solidName } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, who } from './core.js?v=21';
+import { row, col, fig, emo, label, seq, bigEq, shape, solid, jug, glass, pgraph, tally, table, svg, COLORS, SOLIDS, cname, sname, solidName } from './vis.js?v=21';
 
 const T = { vol: ['容量', 'Volume', '🥛'], graph: ['圖畫統計圖', 'Picture graphs', '📊'], shape: ['平面圖形', '2D shapes', '🔺'], solid: ['立體', '3D shapes', '🧊'], review: ['總複習', 'Review', '🏁'], bonus: ['加分題', 'Bonus', '⭐'] };
 const INK = '#2b2140', CK = Object.keys(COLORS), SK = Object.keys(SOLIDS);
@@ -369,7 +369,7 @@ export default [
   // ---- 加分題（台灣二下）----
   def(T.bonus, '邊、角、頂點', 'Sides, angles and corners', (d) => {
     const [k, n, zh, en] = pick([['tri', 3, '三角形', 'triangle'], ['square', 4, '正方形', 'square'], ['rect', 4, '長方形', 'rectangle'], ...(d ? [[5, 5, '五邊形', 'pentagon'], [6, 6, '六邊形', 'hexagon']] : [])]), c = pick(CK), [wz, we] = pick([['邊', 'sides'], ['角', 'angles'], ['頂點', 'corners']]);
-    return Q.num({ p: L(`${zh}有幾個${wz}？`, `How many ${we} does a ${en} have?`), scene: typeof k === 'number' ? ngon(k, COLORS[c].c) : sh(k, c, 210), ans: n, opts: [3, 4, 5, 6], hint: L('用手指一個一個點著數。', 'Point and count them one by one.'),
+    return Q.num({ p: L(`${zh}有幾個${wz}？`, `How many ${we} does a ${en} have?`), scene: typeof k === 'number' ? ngon(k, COLORS[c].c) : sh(k, c, 210), ans: n, opts: [3, 4, 5, 6], hint: L('用手指一個一個點，邊點邊數。', 'Point and count them one by one.'),
       full: L(`${zh}有 ${n} 個邊、${n} 個角、${n} 個頂點`, `A ${en} has ${n} sides, ${n} angles and ${n} corners`) });
   }, true),
   def(T.bonus, '周長', 'Walk around the shape', (d) => {

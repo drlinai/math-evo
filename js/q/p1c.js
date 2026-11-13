@@ -1,7 +1,7 @@
 // 小一下 LV3（新加坡 P1 Term 3）：39 種題型。加減法擴到 100（開始用直式）、用公分量長度、乘法的「幾組幾個」。
 // 每個題型只是「概念」：數字、東西、人名、顏色每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, cnt, who, who2, THINGS, ANIMALS, FOODS } from './core.js?v=19';
-import { items, groups, array, row, col, fig, label, pic, seq, bigEq, vsum, blocks, ruler, bars, tallBars, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, cnt, who, who2, THINGS, ANIMALS, FOODS } from './core.js?v=21';
+import { items, groups, array, row, col, fig, label, pic, seq, bigEq, vsum, blocks, ruler, bars, tallBars, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=21';
 
 const T = { add: ['100 以內的加法', 'Addition within 100', '➕'], sub: ['100 以內的減法', 'Subtraction within 100', '➖'], len: ['長度', 'Length', '📏'], mul: ['乘法', 'Multiplication', '✖️'], bonus: ['加分題', 'Bonus', '⭐'] };
 const CK = Object.keys(COLORS), INK = '#2b2140';
@@ -29,7 +29,7 @@ const OBJS = [['鈕扣', 'button', 1, 2], ['鉛筆', 'pencil', 10, 15], ['原子
 
 // ---------- 這個年級自己的圖 ----------
 // 算式題的題目區：第一次碰到（d = 0）時在算式上面擺積木；b 不傳就只擺 a
-const eqScene = (d, eq, a, b) => (d ? bigEq(eq) : col(b ? row(blocks(a), label('+', 'big'), blocks(b)) : blocks(a), bigEq(eq, 'xs')));
+const eqScene = (d, eq, a, b) => (d ? bigEq(eq) : col(b ? row(blocks(a, 1.5), label('+', 'big'), blocks(b, 1.5)) : blocks(a, 1.5), bigEq(eq, 'xs')));
 // 直式，可以標出進位／退位：mark 'carry' 在十位上面寫小 1；'borrow' 把被減數劃掉，上面寫退位後的數
 function vform(a, b, op, mark) {
   const td = (ch, top = '', cut = false) => `<td style="position:relative;width:.9em">${top === '' ? '' : `<small style="position:absolute;left:0;right:0;top:-.72em;font-size:.36em;line-height:1;color:#e8483f">${top}</small>`}${cut ? `<s style="text-decoration-color:#e8483f;text-decoration-thickness:.08em">${ch}</s>` : ch}</td>`;
@@ -91,7 +91,7 @@ export default [
   }),
   def(T.add, '兩位數相加', 'Add two 2-digit numbers', (d) => {
     const [a, b] = addends(false, d ? 99 : 60);
-    return Q.num({ p: L(`${a} + ${b} 是多少？`, `What is ${a} + ${b}?`), scene: d ? vsum(a, b, '+') : row(vsum(a, b, '+'), col(blocks(a), blocks(b))), ans: a + b, lo: 20, hi: 99,
+    return Q.num({ p: L(`${a} + ${b} 是多少？`, `What is ${a} + ${b}?`), scene: d ? vsum(a, b, '+') : row(vsum(a, b, '+'), col(blocks(a, 1.25), blocks(b, 1.25))), ans: a + b, lo: 20, hi: 99,
       hint: L('先加個位，再加十位。', 'Add the ones first, then add the tens.'), full: `${a} + ${b} = ${a + b}` });
   }),
   def(T.add, '兩位數相加進位', 'Add with regrouping', (d) => {
@@ -144,7 +144,7 @@ export default [
   }),
   def(T.sub, '兩位數相減', 'Subtract two 2-digit numbers', (d) => {
     const [a, b] = minus(false, d ? 99 : 60);
-    return Q.num({ p: L(`${a} − ${b} 是多少？`, `What is ${a} − ${b}?`), scene: d ? vsum(a, b, '−') : row(vsum(a, b, '−'), blocks(a)), ans: a - b, lo: Math.max(1, a - b - 9), hi: 99,
+    return Q.num({ p: L(`${a} − ${b} 是多少？`, `What is ${a} − ${b}?`), scene: d ? vsum(a, b, '−') : row(vsum(a, b, '−'), blocks(a, 2)), ans: a - b, lo: Math.max(1, a - b - 9), hi: 99,
       hint: L('先減個位，再減十位。', 'Subtract the ones first, then subtract the tens.'), full: `${a} − ${b} = ${a - b}` });
   }),
   def(T.sub, '兩位數相減退位', 'Subtract with regrouping', (d) => {
@@ -202,7 +202,7 @@ export default [
   }),
   def(T.len, '尺不從 0 開始', 'Not starting from 0', (d) => {
     const from = rnd(1, d ? 6 : 3), n = rnd(2, d ? 9 : 5), to = from + n, [zh, en] = pick(OBJS.filter((o) => o[2] <= n && n <= o[3]));
-    return Q.num({ p: L(`${zh}從 ${from} 量到 ${to}。它有多長？`, `The ${en} starts at ${from} and ends at ${to}. How long is it?`), scene: ruler(15, { from, to, c: COLORS[pick(CK)].c }), ans: n, opts: near(n, [to, from], 1, 15), unit: U(),
+    return Q.num({ p: L(`${zh}的一頭在 ${from}，另一頭在 ${to}。它有多長？`, `The ${en} starts at ${from} and ends at ${to}. How long is it?`), scene: ruler(15, { from, to, c: COLORS[pick(CK)].c }), ans: n, opts: near(n, [to, from], 1, 15), unit: U(),
       hint: L(`不是從 0 開始喔！從 ${from} 數到 ${to}，一共跳了幾格？`, `It does not start at 0! Count the jumps from ${from} to ${to}.`), full: L(`${to} − ${from} = ${n}（公分）`, `${to} − ${from} = ${n} (cm)`) });
   }),
   def(T.len, '比較公分', 'Compare lengths in cm', (d) => {

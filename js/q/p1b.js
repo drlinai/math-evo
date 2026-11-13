@@ -1,7 +1,7 @@
 // 小一上 LV2（新加坡 P1 Term 2）：41 種題型。數到 100、加減到 20（湊十、從 10 減），第一次出現圖畫統計圖。
 // 每個題型只是「概念」：數字、東西、人名、主題每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, who, who2, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=19';
-import { items, pile, grp, row, col, fig, emo, ncard, label, pic, dots, seq, bigEq, tenFrame, bond, numLine, hgrid, blocks, pgraph, tally, table, twd, modelCmp, svg } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, who, who2, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=21';
+import { items, pile, grp, row, col, fig, emo, ncard, label, pic, dots, seq, bigEq, tenFrame, bond, numLine, hgrid, blocks, pgraph, tally, table, twd, modelCmp, svg } from './vis.js?v=21';
 
 const T = { n20: ['20 以內的數', 'Numbers to 20', '🔢'], add: ['20 以內的加法', 'Addition within 20', '➕'], sub: ['20 以內的減法', 'Subtraction within 20', '➖'], story: ['應用題', 'Word problems', '📖'],
   graph: ['圖畫統計圖', 'Picture graphs', '📊'], n100: ['100 以內的數', 'Numbers to 100', '💯'], bonus: ['加分題', 'Bonus', '⭐'] };
@@ -81,7 +81,14 @@ function changeStory(d) {
   }
   const a = rnd(d ? 11 : 6, top), b = rnd(2, Math.min(9, a - 2)); // 變少
   const [zh, en] = pick([['送給弟弟', `${w.He} gives ${b} to ${w.his} brother.`], ['送給朋友', `${w.He} gives ${b} to ${w.his} friend.`], FOODS.includes(it.k) ? ['吃掉了', `${w.He} eats ${b} of them.`] : ['弄丟了', `${w.He} loses ${b} of them.`]]);
-  return { a, b, op: '−', ans: a - b, p: L(`${w.n}有 ${a} ${it.m}${it.zh}，${zh} ${b} ${it.m}。${ask}`, `${w.n} has ${a} ${it.ens}. ${en} ${ask}`), art: grp(its(it.k, a, { gone: b })), cnt: '.it:not(.gone)', bd: row(pic(it.k, 130), bond(a, b, '?')) };
+  return { a, b, op: '−', ans: a - b, p: L(`${w.n}有 ${a} ${it.m}${it.zh}，${zh} ${b} ${it.m}。${ask}`, `${w.n} has ${a} ${it.ens}. ${en} ${ask}`), art: grp(its(it.k, a)), cnt: null, bd: row(pic(it.k, 130), bond(a, b, '?')) };
+}
+// 「求原本」：送走／吃掉 b 個之後剩 c 個，原本有幾個？（圖只畫現在剩下的）
+function startStory(d) {
+  const w = who(), it = thing(GOODS), a = rnd(d ? 11 : 6, d ? 20 : 12), b = rnd(2, Math.min(9, a - 2)), c = a - b, B = `${b} ${pl(b, it.en, it.ens)}`;
+  const [zh, en] = pick([['送給弟弟', `${w.n} gives ${B} to ${w.his} brother.`], ['送給朋友', `${w.n} gives ${B} to ${w.his} friend.`], FOODS.includes(it.k) ? ['吃掉了', `${w.n} eats ${B}.`] : ['弄丟了', `${w.n} loses ${B}.`]]);
+  return { a: c, b, op: '+', ans: a, p: L(`${w.n}${zh} ${b} ${it.m}${it.zh}後，還剩下 ${c} ${it.m}。${w.ta}原本有幾${it.m}${it.zh}？`, `${en} ${w.He} has ${c} left. How many ${it.ens} did ${w.he} have at first?`),
+    art: grp(its(it.k, c)), cnt: null, bd: row(pic(it.k, 130), bond('?', c, b)) };
 }
 // 合併型的情境：[圖, 量詞, 中文, 英文複數] ×2 ＋ 合起來叫什麼 [量詞, 中文, 英文]
 const JOIN = [
@@ -134,8 +141,8 @@ export default [
   }),
   def(T.n20, '十和幾', 'Ten and ones', (d) => {
     const o = rnd(1, 9), n = 10 + o, whole = d > 0 && chance(0.3);
-    return Q.num({ p: whole ? L(`10 和 ${o} 合起來是多少？`, `10 and ${o} make □.`) : L(`${n} 是 10 和多少？`, `${n} is 10 and □.`), scene: tenFrame(10, o), ans: whole ? n : o, lo: whole ? 10 : 0, hi: whole ? 20 : 10,
-      hint: L('一塊十格板放滿是 10 個。', 'A full ten-frame is 10.'), full: L(`${n} 是 10 和 ${o}`, `${n} is 10 and ${o}`) });
+    return Q.num({ p: whole ? L(`10 加 ${o} 是多少？`, `10 and ${o} make □.`) : L(`10 加多少是 ${n}？`, `10 and □ make ${n}.`), scene: tenFrame(10, o), ans: whole ? n : o, lo: whole ? 10 : 0, hi: whole ? 20 : 10,
+      hint: L('一塊十格板放滿是 10 個。', 'A full ten-frame is 10.'), full: L(`10 加 ${o} 是 ${n}`, `10 and ${o} make ${n}`) });
   }),
   def(T.n20, '數字的字', 'Number words to 20', (d) => {
     const n = chance(0.35) ? pick([12, 15]) : rnd(11, 20), twin = n === 12 ? 20 : n === 20 || n === 11 ? 12 : (n - 10) * 10; // 容易搞混的：十二↔二十、fifteen↔fifty
@@ -181,7 +188,7 @@ export default [
   // ---- 20 以內的加法 ----
   def(T.add, '湊十法', 'Make 10 to add', (d) => {
     const a = d ? rnd(5, 9) : rnd(7, 9), b = rnd(11 - a, 9), p1 = 10 - a, p2 = b - p1;
-    return Q.num({ p: L(`先湊成 10 再算：${a} + ${b} = □`, `Make 10 first. ${a} + ${b} = □`), scene: row(splitFig(a, '+', b, 1, [p1, p2], 0, '10'), tenFrame(a, b, 1)), ans: a + b, lo: 10, hi: 20,
+    return Q.num({ p: L(`${a} + ${b} = □，記得要先湊成 10 再數。`, `${a} + ${b} = □. Remember to make 10 first.`), scene: row(splitFig(a, '+', b, 1, [p1, p2], 0, '10'), tenFrame(a, b, 1)), ans: a + b, lo: 10, hi: 20,
       hint: L(`把 ${b} 拆成 ${p1} 和 ${p2}。${a} 和 ${p1} 先湊成 10。`, `Split ${b} into ${p1} and ${p2}. ${a} and ${p1} make 10.`), full: `${a} + ${b} = ${a + b}` });
   }),
   def(T.add, '十幾加幾', 'Teen number plus ones', (d) => {
@@ -245,8 +252,9 @@ export default [
   }),
   // ---- 應用題 ----
   def(T.story, '改變型', 'Change stories', (d) => {
-    const s = changeStory(d);
-    return Q.num({ p: s.p, scene: d ? s.bd : s.art, ans: s.ans, lo: Math.max(0, s.ans - 4), hi: Math.min(20, s.ans + 4), count: d ? null : s.cnt, hint: s.op === '+' ? L('變多了，用加的。', 'There are more now. Add.') : L('變少了，用減的。', 'There are fewer now. Subtract.'), full: `${s.a} ${s.op} ${s.b} = ${s.ans}` });
+    const start = chance(0.4), s = start ? startStory(d) : changeStory(d);
+    return Q.num({ p: s.p, scene: d ? s.bd : s.art, ans: s.ans, lo: Math.max(0, s.ans - 4), hi: Math.min(20, s.ans + 4), count: d ? null : s.cnt,
+      hint: start ? L('把不見的加回來，就是原本的。', 'Put back the ones that went away. Add.') : s.op === '+' ? L('變多了，用加的。', 'There are more now. Add.') : L('變少了，用減的。', 'There are fewer now. Subtract.'), full: `${s.a} ${s.op} ${s.b} = ${s.ans}` });
   }),
   def(T.story, '合併型', 'Put-together stories', (d) => {
     const s = joinStory(d);
@@ -309,7 +317,7 @@ export default [
   // ---- 100 以內的數 ----
   def(T.n100, '十個一數', 'Count in tens', (d) => {
     const up = d ? chance(0.7) : true, a = (up ? rnd(1, 7) : rnd(6, 10)) * 10, list = range(0, 3).map((i) => a + (up ? i : -i) * 10), miss = d ? rnd(2, 3) : 3, shown = list.map((v, i) => (i === miss ? '?' : v));
-    return Q.num({ p: up ? L('十個一數，問號是多少？', 'Count in tens. What is the missing number?') : L('十個一數倒著數，問號是多少？', 'Count back in tens. What is the missing number?'), say: saySeq(shown), scene: seq(shown), ans: list[miss],
+    return Q.num({ p: up ? L('十個一數，問號是多少？', 'Count in tens. What is the missing number?') : L('十個一數，倒過來數，問號是多少？', 'Count back in tens. What is the missing number?'), say: saySeq(shown), scene: seq(shown), ans: list[miss],
       hint: up ? L('每次多 10，十位的數字多 1。', 'Add 10 each time. The tens digit goes up by 1.') : L('每次少 10，十位的數字少 1。', 'Take away 10 each time. The tens digit goes down by 1.'), full: list.join(', ') });
   }),
   def(T.n100, '幾個十幾個一', 'Tens and ones', (d) => {

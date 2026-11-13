@@ -1,7 +1,7 @@
 // 題目用的圖：全部回傳 HTML／SVG 字串，可以直接放進題目區（約 930×300）或選項卡片裡。
 // 卡片內可用空間：Q.tap / Q.multi / Q.order 2 張 ≈ 380×230、3 張 ≈ 260×230、4 張 ≈ 190×230、5 張 ≈ 150×230；有 top 時卡片高約 120。
-import { src } from '../sprites.js?v=19';
-import { L, rnd, shuffle, range, THINGS } from './core.js?v=19';
+import { src } from '../sprites.js?v=21';
+import { L, rnd, shuffle, range, THINGS } from './core.js?v=21';
 
 const INK = '#2b2140';
 const f = (v) => (Math.round(v * 10) / 10).toString();
@@ -118,17 +118,27 @@ export function hgrid(from, rows = 3, o = {}) {
   for (let i = 0; i < rows * 10; i++) { const v = from + i; s += `<span class="${v === o.q ? 'q' : (o.hl || []).includes(v) ? 'hl' : ''}">${v === o.q ? '?' : v}</span>`; }
   return `<div class="hgrid">${s}</div>`;
 }
-// 積木（百板、十條、單顆）
-export function blocks(n) {
-  const H = Math.floor(n / 100), T = Math.floor((n % 100) / 10), O = n % 10;
+// 積木（百板 10×10 格、十條 10 格、單顆 1 格；每格一樣大）；k 放大倍率
+export function blocks(n, k = 1) {
+  const H = Math.floor(n / 100), T = Math.floor((n % 100) / 10), O = n % 10, U = 10, Y = 6, B = Y + 10 * U;
+  const thin = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${INK}" stroke-width="1" opacity=".55"/>`;
   let s = '', x = 4;
-  for (let i = 0; i < H; i++) { s += `<rect x="${x}" y="24" width="56" height="56" fill="#ffd43a" stroke="${INK}" stroke-width="3"/>`; for (let k = 1; k < 5; k++) s += `<line x1="${x + k * 11.2}" y1="24" x2="${x + k * 11.2}" y2="80" stroke="${INK}" stroke-width="1" opacity=".5"/><line x1="${x}" y1="${24 + k * 11.2}" x2="${x + 56}" y2="${24 + k * 11.2}" stroke="${INK}" stroke-width="1" opacity=".5"/>`; x += 62; }
-  if (H) x += 12;
-  for (let i = 0; i < T; i++) { s += `<rect x="${x}" y="24" width="11" height="56" fill="#2ec27e" stroke="${INK}" stroke-width="2.5"/>`; for (let k = 1; k < 5; k++) s += `<line x1="${x}" y1="${24 + k * 11.2}" x2="${x + 11}" y2="${24 + k * 11.2}" stroke="${INK}" stroke-width="1" opacity=".6"/>`; x += 16; }
-  if (T) x += 12;
-  for (let i = 0; i < O; i++) s += `<rect x="${x + (i % 3) * 15}" y="${68 - Math.floor(i / 3) * 15}" width="12" height="12" fill="#ff7a59" stroke="${INK}" stroke-width="2.5"/>`;
-  if (O) x += 46;
-  return svg(Math.max(x + 4, 60), 104, s);
+  for (let i = 0; i < H; i++) {
+    s += `<rect x="${x}" y="${Y}" width="${10 * U}" height="${10 * U}" fill="#ffd43a" stroke="${INK}" stroke-width="3"/>`;
+    for (let k = 1; k < 10; k++) s += thin(x + k * U, Y, x + k * U, B) + thin(x, Y + k * U, x + 10 * U, Y + k * U);
+    x += 10 * U + 8;
+  }
+  if (H) x += 10;
+  for (let i = 0; i < T; i++) {
+    s += `<rect x="${x}" y="${Y}" width="${U}" height="${10 * U}" fill="#2ec27e" stroke="${INK}" stroke-width="2.5"/>`;
+    for (let k = 1; k < 10; k++) s += `<line x1="${x}" y1="${Y + k * U}" x2="${x + U}" y2="${Y + k * U}" stroke="${INK}" stroke-width="1.4" opacity=".8"/>`;
+    x += U + 6;
+  }
+  if (T) x += 10;
+  for (let i = 0; i < O; i++) s += `<rect x="${x + (i % 3) * (U + 5)}" y="${B - U - Math.floor(i / 3) * (U + 5)}" width="${U}" height="${U}" fill="#ff7a59" stroke="${INK}" stroke-width="2.5"/>`;
+  if (O) x += 3 * (U + 5);
+  const w = Math.max(x + 4, 60), h = B + 6;
+  return svg(w, h, s).replace(`width="${w}" height="${h}"`, `width="${f(w * k)}" height="${f(h * k)}"`);
 }
 
 // ---------- 形狀與立體 ----------

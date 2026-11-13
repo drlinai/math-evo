@@ -1,7 +1,7 @@
 // 小二上 LV2（新加坡 P2 Term 2）：39 種題型。正式用 × 和 ÷，背 2、5、10 的乘法表；重量用公斤、公克；時間讀到 1 分鐘。
 // 每個題型只是「概念」：東西、人名、數字、情境每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, who, who2, sayOf, FOODS, TOYS } from './core.js?v=19';
-import { items, groups, array, grp, row, col, fig, emo, ncard, label, pic, seq, bigEq, blocks, clock, timeStr, scale, balance, svg } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, who, who2, sayOf, FOODS, TOYS } from './core.js?v=21';
+import { items, groups, array, grp, row, col, fig, emo, ncard, label, pic, seq, bigEq, blocks, clock, timeStr, scale, balance, svg } from './vis.js?v=21';
 
 const T = { md: ['乘除概念', 'Multiply and divide', '✖️'], table: ['乘法表', 'Times tables', '🔢'], word: ['乘除應用題', 'Word problems', '📖'],
   mass: ['重量', 'Mass', '⚖️'], time: ['時間', 'Time', '🕒'], bonus: ['加分題', 'Bonus', '⭐'] };
@@ -119,12 +119,12 @@ export default [
   def(T.table, '2 的跳數', 'Count in twos', (d) => {
     const a = 2 * rnd(1, d ? 7 : 4), back = d === 2 && chance(0.3), list = range(0, 3).map((i) => a + 2 * i), miss = d ? rnd(1, 3) : 3;
     if (back) list.reverse();
-    return Q.num({ p: back ? L('2 個 2 個倒著數，問號是多少？', 'Count back in twos. What is the missing number?') : L('2 個 2 個跳著數，問號是多少？', 'Count in twos. What is the missing number?'),
+    return Q.num({ p: back ? L('2 個 2 個倒過來數，問號是多少？', 'Count back in twos. What is the missing number?') : L('2 個 2 個往下數，問號是多少？', 'Count in twos. What is the missing number?'),
       scene: seq(list.map((v, i) => (i === miss ? '?' : v))), ans: list[miss], lo: 0, hi: 22, hint: back ? L('每次少 2。', 'Take away 2 each time.') : L('每次多 2。', 'Add 2 each time.'), full: list.join(', ') });
   }),
   def(T.table, '2 的乘法', '2 times table', (d) => {
     const n = rnd(1, d ? 10 : 5), it = thing(), eq = d && chance(0.4) ? `2 × ${n} = □` : `${n} × 2 = □`;
-    return calc(eq, 2 * n, { hi: 22, hint: L('2 個 2 個跳著數。', 'Count in twos.'), ...(d ? {} : { scene: col(bigEq(eq, 'tiny'), groups(n, 2, it.k)), count: '.it' }) });
+    return calc(eq, 2 * n, { hi: 22, hint: L('2 個 2 個往下數。', 'Count in twos.'), ...(d ? {} : { scene: col(bigEq(eq, 'tiny'), groups(n, 2, it.k)), count: '.it' }) });
   }),
   def(T.table, '雙倍', 'Doubles', (d) => {
     const n = rnd(1, d ? 10 : 5), it = thing(), g = (cls, from) => grp(items(it.k, n, { size: 'sm', cols: 5, from }), cls);
@@ -133,16 +133,16 @@ export default [
   }),
   def(T.table, '5 的跳數', 'Count in fives', (d) => {
     const k = rnd(4, [6, 10, 12][d]), list = [k - 3, k - 2, k - 1].map((i) => 5 * i);
-    return Q.num({ p: L('5 個 5 個跳著數，接下來是多少？', 'Count in fives. What comes next?'), say: L(`5 個 5 個跳著數：${list.join('、')}，接下來是多少？`, `Count in fives: ${list.join(', ')}. What comes next?`),
+    return Q.num({ p: L('5 個 5 個往下數，接下來是多少？', 'Count in fives. What comes next?'), say: L(`5 個 5 個往下數：${list.join('、')}，接下來是多少？`, `Count in fives: ${list.join(', ')}. What comes next?`),
       scene: row(seq([...list, '?']), clock5(k)), ans: 5 * k, lo: 5, hi: 30, hint: L('時鐘上每走一個數字，就多 5 分鐘。', 'Each number on the clock is 5 more minutes.'), full: [...list, 5 * k].join(', ') });
   }),
   def(T.table, '5 的乘法', '5 times table', (d) => {
     const n = rnd(1, d ? 10 : 5), eq = d && chance(0.4) ? `5 × ${n} = □` : `${n} × 5 = □`;
-    return calc(eq, 5 * n, { hint: L('5 個 5 個跳著數。', 'Count in fives.'), ...(d ? {} : { scene: col(bigEq(eq, 'tiny'), erow(range(1, n).map(() => emo('🖐️', 84)))) }) });
+    return calc(eq, 5 * n, { hint: L('5 個 5 個往下數。', 'Count in fives.'), ...(d ? {} : { scene: col(bigEq(eq, 'tiny'), erow(range(1, n).map(() => emo('🖐️', 84)))) }) });
   }),
   def(T.table, '10 的乘法', '10 times table', (d) => {
     const n = rnd(1, d ? 10 : 5), eq = d && chance(0.4) ? `10 × ${n} = □` : `${n} × 10 = □`;
-    return calc(eq, 10 * n, { hint: L('10 個 10 個跳著數。', 'Count in tens.'), ...(d ? {} : { scene: col(bigEq(eq, 'tiny'), blocks(10 * n)) }) });
+    return calc(eq, 10 * n, { hint: L('10 個 10 個往下數。', 'Count in tens.'), ...(d ? {} : { scene: col(bigEq(eq, 'tiny'), blocks(10 * n, 1.6)) }) });
   }),
   def(T.table, '缺因數', 'Missing factor', (d) => {
     const [t, n] = fact(d), p = t * n, form = rnd(0, d === 2 ? 2 : 1), eq = [`□ × ${t} = ${p}`, `${t} × □ = ${p}`, `${n} × □ = ${p}`][form];
@@ -220,8 +220,8 @@ export default [
     const light = [['🥚', '一顆雞蛋', 'an egg'], ['✏️', '一枝鉛筆', 'a pencil'], ['🍓', '一顆草莓', 'a strawberry'], ['🔑', '一把鑰匙', 'a key'], ['🍪', '一片餅乾', 'a biscuit'], ['🍃', '一片葉子', 'a leaf'], ['✉️', '一封信', 'a letter'], ['🍬', '一顆糖果', 'a sweet'], ['🥄', '一根湯匙', 'a spoon']];
     const heavy = [['🧒', '一個小朋友', 'a child'], ['🍚', '一袋米', 'a bag of rice'], ['🍉', '一顆大西瓜', 'a big watermelon'], ['🐕', '一隻大狗', 'a big dog'], ['🪑', '一張椅子', 'a chair'], ['🚲', '一輛腳踏車', 'a bicycle'], ['🧳', '一個行李箱', 'a suitcase'], ['📺', '一台電視', 'a television'], ['🐖', '一頭豬', 'a pig']];
     const kg = chance(0.5), [e, zh, en] = pick(kg ? heavy : light);
-    return Q.pick({ p: L(`量${zh}有多重，用公斤還是公克比較適合？`, `Would you weigh ${en} in kg or g?`), say: L(`量${zh}有多重，用公斤還是公克比較適合？`, `Would you weigh ${en} in kilograms or grams?`), scene: emo(e, 170),
-      right: kg ? KG() : GR(), wrong: [kg ? GR() : KG()], hint: L('輕輕的東西用公克，重重的東西用公斤。', 'Use grams for light things and kilograms for heavy things.'), full: L(`${zh}用${kg ? '公斤' : '公克'}來量`, `We weigh ${en} in ${kg ? 'kilograms' : 'grams'}`) });
+    return Q.pick({ p: L(`${zh}有多重，用公斤還是公克比較適合？`, `Would you weigh ${en} in kg or g?`), say: L(`${zh}有多重，用公斤還是公克比較適合？`, `Would you weigh ${en} in kilograms or grams?`), scene: emo(e, 170),
+      right: kg ? KG() : GR(), wrong: [kg ? GR() : KG()], hint: L('輕輕的東西用公克，重重的東西用公斤。', 'Use grams for light things and kilograms for heavy things.'), full: L(`${zh}用${kg ? '公斤' : '公克'}比較適合`, `We weigh ${en} in ${kg ? 'kilograms' : 'grams'}`) });
   }),
   def(T.mass, '比較排序', 'Order by mass', (d) => {
     const [e, zh, ens] = pick([['📦', '包裹', 'parcels'], ['🎁', '禮物', 'presents'], ['🧺', '籃子', 'baskets'], ['🎒', '書包', 'bags']]), kg = chance(0.5), u = kg ? KG() : GR(), desc = d > 0 && chance(0.35), base = 50 * rnd(2, 17);
@@ -301,7 +301,7 @@ export default [
       t1 = pick([...range(6, 11), ...range(13, 21)]) * 60 + m1; t2 = t1 - m1 + m2;
       const P = (f) => L(`從${f(t1)}到${f(t2)}，經過幾分鐘？`, `From ${f(t1)} to ${f(t2)} is □ minutes.`), F = (f) => L(`從${f(t1)}到${f(t2)}是 ${m2 - m1} 分鐘`, `From ${f(t1)} to ${f(t2)} is ${m2 - m1} minutes`);
       return Q.num({ p: P(ap), say: L(P(apSay), `How many minutes is it from ${apSay(t1)} to ${apSay(t2)}?`), scene: row(fig(clk(t1, 170), ap(t1)), emo('➡️', 50), fig(clk(t2, 170), ap(t2))), ans: m2 - m1, lo: 5, hi: 30, unit: L('分鐘', 'min'),
-        hint: L('長針從哪裡走到哪裡？5 分、5 分跳著數。', 'How far does the long hand move? Count in fives.'), full: F(ap), fullSay: F(apSay) });
+        hint: L('長針從哪裡走到哪裡？5 分、5 分往下數。', 'How far does the long hand move? Count in fives.'), full: F(ap), fullSay: F(apSay) });
     }
     const m = d ? pick([0, 0, 30, 15]) : 0, dur = rnd(2, d ? 5 : 3);
     if (d === 2 && chance(0.35)) { t1 = rnd(8, 11) * 60 + m; t2 = rnd(13, 16) * 60 + m; } // 跨過中午

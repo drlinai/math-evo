@@ -1,7 +1,7 @@
 // 小一下 LV4（新加坡 P1 Term 4）：35 種題型。除法（只用圖和文字，不出現除號）、時間、錢。
 // 每個題型只是「概念」：東西、人名、情境、數字每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, cnt, who, who2, sayOf, FOODS, TOYS } from './core.js?v=19';
-import { items, grp, row, col, fig, emo, label, pic, bigEq, groups, clock, timeStr, digital, coin, note, cash, change, calendar } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, cnt, who, who2, sayOf, FOODS, TOYS } from './core.js?v=21';
+import { items, grp, row, col, fig, emo, label, pic, bigEq, groups, clock, timeStr, digital, coin, note, cash, change, calendar } from './vis.js?v=21';
 
 const T = { div: ['除法', 'Division', '🍪'], time: ['時間', 'Time', '🕐'], money: ['錢', 'Money', '💰'], mix: ['綜合', 'Mixed practice', '🧠'], bonus: ['加分題', 'Bonus', '⭐'] };
 const sum = (a) => a.reduce((x, y) => x + y, 0);
@@ -134,16 +134,6 @@ export default [
     return Q.num({ p, scene: done ? shared(it.k, Array(g).fill(e), top) : unshared(it.k, t, k === 2 ? null : top), ans: k === 2 ? g : e, lo: 1, hi: 10,
       hint: k === 2 ? L(`${e} 個、${e} 個地分，看看可以分成幾份。`, `Make groups of ${e}. Then count the groups.`) : L('一個一個輪流分，分到沒有為止。', 'Give them out one at a time until none are left.'),
       full: k === 2 ? L(`${t} 裡面有 ${g} 個 ${e}，需要 ${g} 個${b.zh}`, `${t} is ${g} groups of ${e}, so ${g} ${b.ens}`) : L(`${t} 平分成 ${g} 份，每份 ${e} ${it.m}`, `${t} shared equally into ${g} groups is ${e} each`) });
-  }),
-  def(T.div, '選合起來或分開', 'Put together or share out?', (d) => {
-    const b = pick(BOXES), r = pick(EATERS.slice(0, 2)), it = thing(FOODS), [g, e] = gePair(d ? 20 : 12), t = g * e, k = chance(0.5) ? 0 : d === 2 ? rnd(1, 2) : 1;
-    const story = [L(`有 ${g} 個${b.zh}，每個${b.zh}裝 ${cnt(e, it)}，一共有幾${it.m}？`, `${g} ${b.ens} have ${e} ${it.ens} each. How many ${it.ens} are there altogether?`),
-      L(`把 ${cnt(t, it)}平分給 ${g} ${r.m}${r.zh}，每${r.m}分到幾${it.m}？`, `${cnt(t, it)} are shared equally ${g === 2 ? 'between' : 'among'} ${g} ${r.ens}. How many does each ${r.en} get?`),
-      L(`${cnt(t, it)}，每 ${e} ${it.m}裝一${b.m}，可以裝幾${b.m}？`, `${cnt(t, it)} are put into ${b.ens} of ${e}. How many ${b.ens} are there?`)][k];
-    const tog = L('合起來', 'put together'), shr = L('分一分', 'share out');
-    return Q.pick({ p: story + L('要「合起來」還是「分一分」？', ' Do you put groups together or share out?'), scene: k === 0 ? shared(it.k, Array(g).fill(e), faces([b.e], g)) : unshared(it.k, t, k === 1 ? faces(r.e, g) : null),
-      right: k === 0 ? tog : shr, wrong: [k === 0 ? shr : tog], hint: L('是把一樣多的幾份合起來，還是把一堆分成幾份？', 'Are equal groups joined, or is one big group split up?'),
-      full: [L(`合起來：${g} 個 ${e} 是 ${t}`, `Put together: ${g} groups of ${e} make ${t}`), L(`分一分：${t} 平分成 ${g} 份`, `Share out: ${t} shared into ${g} equal groups`), L(`分一分：${t} 每 ${e} 個一份`, `Share out: ${t} put into groups of ${e}`)][k] });
   }),
   // ---- 時間 ----
   def(T.time, '整點', "O'clock", (d) => {
@@ -281,16 +271,6 @@ export default [
       tray: L('我要買', 'My tray'), showSum: tag, hint: L('藍色是喝的，黃色是吃的。各選一樣，加起來看看。', 'Blue ones are drinks and yellow ones are snacks. Pick one of each and add the prices.'), full: `${a * u} + ${b * u} = ${B} ${inC ? L('分', 'cents') : L('元', 'dollars')}` });
   }),
   // ---- 綜合 ----
-  def(T.mix, '四則選擇', 'Add, subtract, group or share?', (d) => {
-    const w = who(), it = thing(STUFF), b = pick(BOXES), k = rnd(0, 3), [g, e] = gePair(20), t = g * e, x = rnd(6, d ? 18 : 10), y = rnd(2, k === 0 ? 9 : x - 2);
-    const ops = [L('加起來', 'add'), L('減掉', 'subtract'), L('一組一組合起來', 'make groups'), L('平分', 'share')];
-    const story = [L(`${w.n}有 ${cnt(x, it)}，又拿到 ${y} ${it.m}，現在有幾${it.m}？`, `${w.n} has ${cnt(x, it)}. ${w.He} gets ${y} more. How many ${it.ens} now?`),
-      L(`${w.n}有 ${cnt(x, it)}，送給朋友 ${y} ${it.m}，還剩幾${it.m}？`, `${w.n} has ${cnt(x, it)}. ${w.He} gives away ${y}. How many ${it.ens} are left?`),
-      L(`有 ${g} 個${b.zh}，每個${b.zh}裝 ${cnt(e, it)}，一共有幾${it.m}？`, `${g} ${b.ens} have ${e} ${it.ens} each. How many ${it.ens} altogether?`),
-      L(`${w.n}把 ${cnt(t, it)}平分給 ${g} 個朋友，每個朋友分到幾${it.m}？`, `${w.n} shares ${cnt(t, it)} equally ${g === 2 ? 'between' : 'among'} ${g} friends. How many does each friend get?`)][k];
-    return Q.pick({ p: story + L('要用哪一種方法？', ' Do you add, subtract, make groups or share?'), scene: row(pic(it.k, 130), emo('🤔', 120)), right: ops[k], wrong: ops.filter((_, i) => i !== k),
-      full: [L(`加起來：${x} + ${y}`, `Add: ${x} + ${y}`), L(`減掉：${x} − ${y}`, `Subtract: ${x} − ${y}`), L(`一組一組合起來：${g} 個 ${e}`, `Make groups: ${g} groups of ${e}`), L(`平分：${t} 平分成 ${g} 份`, `Share: ${t} shared into ${g} equal groups`)][k] });
-  }),
   def(T.mix, '一步驟應用題混合', 'One-step word problems', (d) => {
     const [A, B] = who2(), it = thing(STUFF), b = pick(BOXES), k = rnd(0, 6), N = [20, 50, 100][d];
     const one = fig(pic(it.k, 130), A.n), two = (x, y) => row(fig(pic(it.k, 110), `${A.n} ${x}`), fig(pic(it.k, 110), `${B.n} ${y}`));

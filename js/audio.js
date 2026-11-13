@@ -1,7 +1,7 @@
 // 語音（瀏覽器內建 zh-TW）、音效與背景音樂（WebAudio 合成，不需音檔）
-import { state, save } from './state.js?v=19';
-import { getLang } from './i18n.js?v=19';
-import { chooseVoice } from './voices.js?v=19';
+import { state, save } from './state.js?v=21';
+import { getLang } from './i18n.js?v=21';
+import { chooseVoice } from './voices.js?v=21';
 
 let ctx = null, musicTimer = null, musicStep = 0, master = null;
 const voices = { zh: null, en: null };
@@ -32,6 +32,17 @@ export function unlockAudio() {
   if (state.settings.music) startMusic();
 }
 
+// 中文語音的唸法修正：只改「唸出來」的字，畫面上的字不變
+//   分數唸「二分之一」（不是「兩分之一」）、「第 2 個」唸「第二個」、量詞前面的 2 唸「兩」（2 星期 → 兩星期）
+const ZD = '零一二三四五六七八九';
+const zhInt = (n) => { n = +n; return n < 10 ? ZD[n] : n < 20 ? `十${n % 10 ? ZD[n % 10] : ''}` : n < 100 ? `${ZD[Math.floor(n / 10)]}十${n % 10 ? ZD[n % 10] : ''}` : String(n); };
+const LIANG = '星期|週|個|隻|顆|條|片|輛|根|盒|支|枝|塊|張|本|位|包|袋|瓶|杯|盤|排|組|份|堆|串|雙|對|種|次|倍|天|年(?!級)|小時|分鐘|公尺|公分|公斤|公克|公升|元|頭|把|封|台|件|朵|棵|層|格|步|圈|人|點|籃|箱|罐|碗|桶|群|列|行|邊|段|節|頁|歲';
+const LIANG_RE = new RegExp(`(^|[^\\d.])2\\s*(?=${LIANG})`, 'g');
+export const zhSay = (text) => String(text)
+  .replace(/(\d+)\s*分之\s*(\d+)/g, (m, b, a) => `${zhInt(b)}分之${zhInt(a)}`)
+  .replace(/第\s*2(?![\d.])/g, '第二')
+  .replace(LIANG_RE, '$1兩');
+
 // 唸一句話；Promise 會等到「真的唸完」才結束，流程用它來決定何時切換畫面
 export function speak(text, { rate } = {}) {
   return new Promise((resolve) => {
@@ -39,7 +50,7 @@ export function speak(text, { rate } = {}) {
     if (!synth || !state.settings.voice || !text) return setTimeout(resolve, 500);
     const lang = getLang();
     const go = () => {
-      const u = new SpeechSynthesisUtterance(text);
+      const u = new SpeechSynthesisUtterance(lang === 'en' ? text : zhSay(text));
       if (voices[lang]) u.voice = voices[lang];
       u.lang = lang === 'en' ? 'en-US' : 'zh-TW';
       u.rate = rate ?? (lang === 'en' ? 0.92 : 0.95);

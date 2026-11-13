@@ -1,7 +1,7 @@
 // 小二上 LV1（新加坡 P2 Term 1）：38 種題型。數到 1000、三位數加減直式、應用題配模型圖、長度加入公尺。
 // 每個題型只是「概念」：數字、東西、人名、情境每次都隨機換。
-import { Q, def, L, EN, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, who, who2 } from './core.js?v=19';
-import { row, col, fig, emo, ncard, label, seq, bigEq, vsum, numLine, blocks, ruler, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=19';
+import { Q, def, L, EN, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, who, who2 } from './core.js?v=21';
+import { row, col, fig, emo, ncard, label, seq, bigEq, vsum, numLine, blocks, ruler, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=21';
 
 const T = { num: ['1000 以內的數', 'Numbers to 1000', '🔢'], add: ['1000 以內的加法', 'Addition within 1000', '➕'], sub: ['1000 以內的減法', 'Subtraction within 1000', '➖'], mix: ['加減綜合', 'Addition and subtraction', '🧮'],
   word: ['應用題', 'Word problems', '📖'], len: ['長度', 'Length', '📏'], bonus: ['加分題', 'Bonus', '⭐'] };
@@ -142,7 +142,7 @@ export default [
   // ---- 1000 以內的數 ----
   def(T.num, '一百一百數', 'Count in hundreds', (d) => {
     const back = d > 0 && chance(0.3), a = back ? rnd(4, 10) * 100 : rnd(1, d ? 7 : 4) * 100, list = range(0, 3).map((i) => a + i * (back ? -100 : 100)), miss = d === 2 && chance(0.4) ? rnd(1, 2) : 3;
-    const head = back ? L('一百一百倒著數', 'Count back in hundreds') : L('一百一百數', 'Count in hundreds');
+    const head = back ? L('一百一百倒過來數', 'Count back in hundreds') : L('一百一百數', 'Count in hundreds');
     return Q.num({ p: miss === 3 ? L(`${head}，接下來是多少？`, `${head}. What comes next?`) : L(`${head}，少了哪一個數？`, `${head}. Which number is missing?`), say: miss === 3 ? L(`${head}：${list.slice(0, 3).join('、')}，接下來是多少？`, `${head}: ${list.slice(0, 3).join(', ')}. What comes next?`) : undefined,
       scene: seq(list.map((v, i) => (i === miss ? '?' : v))), ans: list[miss], hint: L('看百位的數字，每次差 1。', 'Look at the hundreds digit. It changes by 1 each time.'), full: list.join(', ') });
   }),
@@ -321,14 +321,14 @@ export default [
   }),
   def(T.len, '選單位', 'Metres or centimetres?', (d) => {
     const useM = chance(0.5), [e, zh, en, n] = pick(useM ? USE_M : USE_CM), M = L('公尺', 'm'), C = L('公分', 'cm');
-    const hint = L('很長的東西用公尺量，短短的東西用公分量。', 'Use metres for long things. Use centimetres for short things.');
+    const hint = L('很長的東西用公尺，短短的東西用公分。', 'Use metres for long things. Use centimetres for short things.');
     if (d && chance(0.5)) return Q.pick({ p: L(`${zh}大約長 ${n} 公尺，還是 ${n} 公分？`, `Is the ${en} about ${n} m or ${n} cm long?`), scene: emo(e, 170), right: `${n} ${useM ? M : C}`, wrong: [`${n} ${useM ? C : M}`], hint, full: L(`${zh}大約長 ${n} ${useM ? M : C}`, `The ${en} is about ${n} ${useM ? M : C} long`) });
-    return Q.pick({ p: L(`量${zh}的長度，用公尺還是公分比較適合？`, `Would you measure the ${en} in m or cm?`), say: L(`量${zh}的長度，用公尺還是公分比較適合？`, `Would you measure the ${en} in metres or centimetres?`), scene: emo(e, 170),
-      right: useM ? L('公尺', 'metres (m)') : L('公分', 'centimetres (cm)'), wrong: [useM ? L('公分', 'centimetres (cm)') : L('公尺', 'metres (m)')], hint, full: useM ? L(`${zh}用公尺量`, `Measure the ${en} in metres`) : L(`${zh}用公分量`, `Measure the ${en} in centimetres`) });
+    return Q.pick({ p: L(`${zh}的長度，用公尺還是公分比較適合？`, `Would you measure the ${en} in m or cm?`), say: L(`${zh}的長度，用公尺還是公分比較適合？`, `Would you measure the ${en} in metres or centimetres?`), scene: emo(e, 170),
+      right: useM ? L('公尺', 'metres (m)') : L('公分', 'centimetres (cm)'), wrong: [useM ? L('公分', 'centimetres (cm)') : L('公尺', 'metres (m)')], hint, full: useM ? L(`${zh}的長度用公尺比較適合`, `Measure the ${en} in metres`) : L(`${zh}的長度用公分比較適合`, `Measure the ${en} in centimetres`) });
   }),
   def(T.len, '用尺量公分', 'Measure in centimetres', (d) => {
     const [zh, en] = pick([['緞帶', 'ribbon'], ['鉛筆', 'pencil'], ['吸管', 'straw'], ['蠟筆', 'crayon'], ['繩子', 'string'], ['木棒', 'stick']]), max = [15, 20, 30][d], off = d === 2 && chance(0.3) ? rnd(1, 5) : 0, n = rnd(d ? 6 : 2, max - off - (d === 2 ? 0 : 1));
-    return Q.num({ p: off ? L(`${zh}沒有從 0 開始量。${zh}有幾公分長？`, `The ${en} does not start at 0. How long is the ${en}? □ cm`) : L(`${zh}有幾公分長？`, `How long is the ${en}? □ cm`), say: off ? L(`${zh}沒有從 0 開始量。${zh}有幾公分長？`, `The ${en} does not start at 0. How many centimetres long is the ${en}?`) : L(`${zh}有幾公分長？`, `How many centimetres long is the ${en}?`),
+    return Q.num({ p: off ? L(`${zh}沒有對齊 0。${zh}有幾公分長？`, `The ${en} does not start at 0. How long is the ${en}? □ cm`) : L(`${zh}有幾公分長？`, `How long is the ${en}? □ cm`), say: off ? L(`${zh}沒有對齊 0。${zh}有幾公分長？`, `The ${en} does not start at 0. How many centimetres long is the ${en}?`) : L(`${zh}有幾公分長？`, `How many centimetres long is the ${en}?`),
       scene: ruler(max, { from: off, to: off + n, c: COLORS[pick(CK)].c }), ans: n, lo: Math.max(1, n - 4), hi: n + 4, unit: L('公分', 'cm'),
       hint: off ? L('數數看，從頭到尾一共有幾格。', 'Count the 1-cm steps from one end to the other.') : L(`看${zh}的尾巴對到尺上的哪一個數字。`, `Look at the number at the end of the ${en}.`), full: off ? L(`${off + n} − ${off} = ${n}，${zh}長 ${n} 公分`, `${off + n} − ${off} = ${n}. The ${en} is ${n} cm long.`) : L(`${zh}長 ${n} 公分`, `The ${en} is ${n} cm long`) });
   }),

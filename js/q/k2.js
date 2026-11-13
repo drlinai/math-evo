@@ -1,6 +1,6 @@
 // 大班（新加坡 K2）：40 種題型。數到 20、分合到 10，開始認數字的「字」（中文版認國字、英文版認英文單字）。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=19';
-import { items, pile, grp, row, col, fig, emo, ncard, label, pic, seq, tenFrame, shape, bars, bond, ruler, gridMap, lineup, numLine, svg, COLORS, SHAPES, BASIC, cname, sname } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=21';
+import { items, pile, grp, row, col, fig, emo, ncard, label, pic, seq, tenFrame, shape, bars, bond, ruler, gridMap, lineup, numLine, svg, COLORS, SHAPES, BASIC, cname, sname } from './vis.js?v=21';
 
 const T = { count: ['點數', 'Counting', '🔢'], numeral: ['數字', 'Numbers', '7️⃣'], word: ['數字的字', 'Number words', '🔤'], seq: ['順序', 'Number order', '➡️'], compare: ['比較', 'Comparing', '⚖️'],
   bond: ['分合', 'Number bonds', '🫧'], pattern: ['型式', 'Patterns', '🔁'], sort: ['分類', 'Sorting', '🗂️'], order: ['排序', 'Ordering', '📶'], shape: ['形狀', 'Shapes', '🔺'], pos: ['位置', 'Position', '📍'], bonus: ['加分題', 'Bonus', '⭐'] };
@@ -19,7 +19,7 @@ export default [
   }),
   def(T.count, '倒數', 'Count back', (d) => {
     const a = rnd(3, 10);
-    return Q.num({ p: L('倒著數，接下來是多少？', 'Count back. What comes next?'), say: L(`倒著數：${a}、${a - 1}、${a - 2}，接下來是多少？`, `Count back: ${a}, ${a - 1}, ${a - 2}. What comes next?`), scene: seq([a, a - 1, a - 2, '?']), ans: a - 3, lo: 0, hi: 10, full: `${a}, ${a - 1}, ${a - 2}, ${a - 3}` });
+    return Q.num({ p: L('倒過來數，接下來是多少？', 'Count back. What comes next?'), say: L(`倒過來數：${a}、${a - 1}、${a - 2}，接下來是多少？`, `Count back: ${a}, ${a - 1}, ${a - 2}. What comes next?`), scene: seq([a, a - 1, a - 2, '?']), ans: a - 3, lo: 0, hi: 10, full: `${a}, ${a - 1}, ${a - 2}, ${a - 3}` });
   }),
   def(T.count, '點數 11~20', 'Count 11 to 20', (d) => {
     const it = thing(), n = rnd(11, d ? 20 : 15), frame = chance(0.5);
@@ -47,7 +47,7 @@ export default [
   def(T.numeral, '聽數字點數字', 'Hear it, tap it', (d) => {
     const pairs = [[12, 20], [13, 15], [14, 40], [16, 19], [11, 17], [13, 30]], n = d ? pick(pick(pairs).filter((x) => x <= 20)) : rnd(0, 20);
     const twin = (pairs.find((p) => p.includes(n)) || []).filter((x) => x !== n && x <= 20), wrong = [...new Set([...twin, ...sample(range(0, 20).filter((x) => x !== n), 4)])].slice(0, 3);
-    return Q.pick({ p: L('聽聽看，點出你聽到的數字。', 'Listen, then tap the number you hear.'), say: L(`請點數字${ZH_NUM[n]}`, `Tap ${EN_NUM[n]}.`), scene: emo('👂', 150), right: n, wrong, full: n });
+    return Q.pick({ p: L('聽聽看，點出你聽到的數字。', 'Listen, then tap the number you hear.'), say: L(`聽聽看，點出你聽到的數字。請點數字${ZH_NUM[n]}。`, `Listen, then tap the number you hear. Tap ${EN_NUM[n]}.`), scene: emo('👂', 150), right: n, wrong, full: n });
   }),
   def(T.numeral, '數字配數量', 'Match number and group', (d) => {
     const it = thing(), n = rnd(d ? 8 : 3, d ? 20 : 12), w = sample([n - 2, n - 1, n + 1, n + 2].filter((v) => v >= 1 && v <= 20), 2);
@@ -138,10 +138,6 @@ export default [
     const cs = sample(CK, 3), k = pick(BASIC), mk = (list) => `<div class="vrow" style="gap:4px">${list.map((c) => sh(k, c, 38)).join('')}</div>`;
     const good = range(0, 5).map((i) => cs[i % 2]), bad1 = [cs[0], cs[1], cs[0], cs[0], cs[1], cs[1]], bad2 = [cs[0], cs[1], cs[2], cs[1], cs[0], cs[0]];
     return Q.tap({ p: L('哪一排是有規律、一直重複的型式？', 'Which row is a repeating pattern?'), right: mk(good), wrong: [mk(bad1), mk(bad2)], full: L('兩個顏色輪流出現', 'The two colours take turns') });
-  }),
-  def(T.pattern, '型式找錯', 'Find the mistake', (d) => {
-    const [c1, c2] = sample(CK, 2), k = pick(BASIC), bad = rnd(1, 6), list = range(0, 7).map((i) => ((i % 2 === 0) !== (i === bad) ? c1 : c2));
-    return Q.tap({ p: L('這排型式裡，哪一個排錯了？', 'Which one is wrong in the pattern?'), cards: list.map((c, i) => [sh(k, c, 70), i === bad]) });
   }),
   // ---- 分類 ----
   def(T.sort, '兩個條件', 'Two rules at once', (d) => {

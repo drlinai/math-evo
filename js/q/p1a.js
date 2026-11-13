@@ -1,7 +1,7 @@
 // 小一上 LV1（新加坡 P1 Term 1）：47 種題型。10 以內的數、10 以內加減、形狀、第幾個。
 // 規格裡要「寫、拖、劃掉、拼字」的題型都改成同一個概念的點選版。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, who, who2, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=19';
-import { items, pile, dots, grp, row, col, fig, emo, ncard, pic, seq, bigEq, tenFrame, bond, numLine, shape, solid, clock, bars, tallBars, lineup, svg, COLORS, SHAPES, BASIC, SOLIDS, cname, sname } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, who, who2, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=21';
+import { items, pile, dots, grp, row, col, fig, emo, ncard, pic, seq, bigEq, tenFrame, bond, numLine, shape, solid, clock, bars, tallBars, lineup, svg, COLORS, SHAPES, BASIC, SOLIDS, cname, sname } from './vis.js?v=21';
 
 const T = { num: ['10 以內的數', 'Numbers to 10', '🔢'], add: ['加法', 'Addition', '➕'], sub: ['減法', 'Subtraction', '➖'], shape: ['形狀', 'Shapes', '🔺'], ord: ['第幾個', 'Ordinal numbers', '🏅'], bonus: ['加分題', 'Bonus', '⭐'] };
 const CK = Object.keys(COLORS), INK = '#2b2140';
@@ -53,6 +53,20 @@ function addStory(a, b) {
   }
   const it = thing([...FOODS, ...TOYS]), w = who();
   return { it, s: L(`${w.n}有 ${a} ${it.m}${it.zh}，又拿到 ${b} ${it.m}。`, `${w.n} has ${a} ${it.ens}. ${w.He} gets ${b} more.`), q: L(`${w.n}現在有幾${it.m}${it.zh}？`, `How many ${it.ens} does ${w.n} have now?`) };
+}
+// 「求原本」的故事（走掉 b 個之後剩 c 個，原本有幾個？）：回傳 { it, s, q }
+function startStory(b, c) {
+  const r = Math.random(), w = who(), left = L(`還剩下 ${c}`, `${c} left`);
+  if (r < 0.4) {
+    const it = it2(pick(Object.keys(MOVE))), m = MOVE[it.k];
+    return { it, s: L(`${m.at[0]}${m.go[0]}了 ${b} ${it.m}${it.zh}後，現在有 ${c} ${it.m}${it.zh}。`, `Some ${it.ens} are ${m.at[1]}. ${b} ${pl(b, it.en, it.ens)} ${pl(b, m.go[2], m.go[1])}. Now there ${pl(c, 'is', 'are')} ${c} ${pl(c, it.en, it.ens)}.`), q: L(`原本有幾${it.m}？`, `How many ${it.ens} were there at first?`) };
+  }
+  if (r < 0.75) {
+    const it = thing(FOODS);
+    return { it, s: L(`${w.n}吃掉 ${b} ${it.m}${it.zh}後，${left} ${it.m}。`, `${w.n} eats ${b} ${pl(b, it.en, it.ens)}. Now there ${pl(c, 'is', 'are')} ${left}.`), q: L(`原本有幾${it.m}${it.zh}？`, `How many ${it.ens} were there at first?`) };
+  }
+  const it = thing(TOYS);
+  return { it, s: L(`${w.n}送給朋友 ${b} ${it.m}${it.zh}後，${left} ${it.m}。`, `${w.n} gives away ${b} ${pl(b, it.en, it.ens)}. ${w.He} has ${left}.`), q: L(`${w.n}原本有幾${it.m}${it.zh}？`, `How many ${it.ens} did ${w.n} have at first?`) };
 }
 function subStory(a, b) {
   const r = Math.random(), w = who();
@@ -125,7 +139,7 @@ const OBJ = {
   rect: [['🚪', '門', 'door'], ['📕', '書', 'book'], ['📱', '手機', 'phone'], ['✉️', '信封', 'envelope']], tri: [['🍙', '三角飯糰', 'rice ball'], ['🍕', '披薩', 'slice of pizza'], ['⛺', '帳篷', 'tent'], ['📐', '三角板', 'set square']],
 };
 const clash = (k) => (k === 'rect' ? 'square' : k === 'square' ? 'rect' : '');   // 正方形、長方形不要同時當「對」和「錯」
-const OBJ3 = { cube: ['🎲'], cuboid: ['📦'], cylinder: ['🥫', '🛢️'], sphere: ['⚽', '🏀', '🎾'] };
+const OBJ3 = { cube: ['🧊', '🎁'], cuboid: ['📦'], cylinder: ['🥫', '🛢️'], sphere: ['⚽', '🏀', '🎾'] };
 
 export default [
   // ---- 10 以內的數 ----
@@ -169,7 +183,7 @@ export default [
   }),
   def(T.num, '缺數', 'Missing number', (d) => {
     const back = chance(d ? 0.5 : 0.3), a = rnd(0, 7), list = back ? range(a, a + 3).reverse() : range(a, a + 3), miss = d ? rnd(0, 3) : rnd(1, 2);
-    return Q.num({ p: back ? L('倒著數，少了哪一個數字？', 'Count back. What is the missing number?') : L('順著數，少了哪一個數字？', 'Count on. What is the missing number?'), scene: seq(list.map((v, i) => (i === miss ? '?' : v))), ans: list[miss], lo: 0, hi: 10, full: list.join(', ') });
+    return Q.num({ p: back ? L('倒過來數，少了哪一個數字？', 'Count back. What is the missing number?') : L('照順序往下數，少了哪一個數字？', 'Count on. What is the missing number?'), scene: seq(list.map((v, i) => (i === miss ? '?' : v))), ans: list[miss], lo: 0, hi: 10, full: list.join(', ') });
   }),
   def(T.num, '十格板速認', 'Ten-frame flash', (d) => {
     const n = rnd(d ? 0 : 1, 10);
@@ -234,10 +248,18 @@ export default [
       scene: d ? eqv(eq) : col(bigEq(eq, 'tiny'), form ? row(none, some) : row(some, none)), ans: form === 2 ? 0 : a, lo: 0, hi: 10, hint: L('加 0 就是沒有再多，數字不會變。', 'Adding 0 means nothing more is added. The number stays the same.'), full: form === 1 ? `0 + ${a} = ${a}` : `${a} + 0 = ${a}` });
   }),
   // ---- 減法 ----
+  // 圖上不把「拿走的」變淡（不然直接數剩下的就好，不用想）：
+  //   一半出「求原本」（圖是現在剩下的），一半出「求剩下」（圖是原本的數量，要自己拿走）
   def(T.sub, '拿走', 'Taking away', (d) => {
-    const a = rnd(3, d ? 10 : 6), b = rnd(1, d === 2 ? a : a - 1), st = subStory(a, b), size = a > 5 ? 'sm' : 'md';
-    return Q.num({ p: st.s + sp() + st.q, scene: grp(d === 2 ? items(st.it.k, a, { size }) : marked(st.it.k, a, b, 'gone', { size })), ans: a - b, lo: 0, hi: 10, count: d === 2 ? null : '.it:not(.gone)',
-      hint: d === 2 ? L(`從 ${a} 往回數 ${b} 個。`, `Start at ${a} and count back ${b}.`) : L('數數看，還在的有幾個？', 'Count the ones that are still there.'), full: `${a} − ${b} = ${a - b}` });
+    const a = rnd(3, d ? 10 : 6), size = a > 5 ? 'sm' : 'md';
+    if (chance(0.5)) {
+      const b = rnd(1, a - 1), c = a - b, st = startStory(b, c);
+      return Q.num({ p: st.s + sp() + st.q, scene: grp(items(st.it.k, c, { size })), ans: a, lo: 0, hi: 10,
+        hint: L(`圖上是現在的 ${c} 個。把不見的 ${b} 個加回來。`, `The picture shows the ${c} that ${pl(c, 'is', 'are')} here now. Put back the ${b} that went away.`), full: `${c} + ${b} = ${a}` });
+    }
+    const b = rnd(1, d === 2 ? a : a - 1), st = subStory(a, b);
+    return Q.num({ p: st.s + sp() + st.q, scene: grp(items(st.it.k, a, { size })), ans: a - b, lo: 0, hi: 10,
+      hint: L(`圖上是原本的 ${a} 個。用手遮住 ${b} 個，還看得到幾個？`, `The picture shows all ${a}. Cover ${b} with your hand. How many can you still see?`), full: `${a} − ${b} = ${a - b}` });
   }),
   def(T.sub, '劃掉再選算式', 'Cross out and subtract', (d) => {
     const it = thing(), a = rnd(3, d ? 10 : 6), b = rnd(1, a - 1), c = a - b, right = `${a} − ${b} = ${c}`;
@@ -343,7 +365,7 @@ export default [
   }),
   def(T.shape, '圖裡數形狀', 'Count the shapes in the picture', (d) => {
     const pic2 = shapePic(d), k = pick(BASIC.filter((x) => pic2.n[x] > 0 && !(x === 'rect' && pic2.n.square > 0))), n = pic2.n[k];
-    return Q.num({ p: L(`${pic2.zh}裡有幾個${sname(k)}？`, `How many ${sname(k)}s are in the ${pic2.en}?`), scene: pic2.h, ans: n, lo: 1, hi: 9, hint: L('一個一個指著數，大的小的都要數。', 'Point to each one as you count. Count the big ones and the small ones.'), full: L(`${n} 個${sname(k)}`, `${n} ${sname(k)}${n === 1 ? '' : 's'}`) });
+    return Q.num({ p: L(`${pic2.zh}裡有幾個${sname(k)}？`, `How many ${sname(k)}s are in the ${pic2.en}?`), scene: pic2.h, ans: n, lo: 1, hi: 9, hint: L('用手指一個一個點，大的小的都要數。', 'Point to each one as you count. Count the big ones and the small ones.'), full: L(`${n} 個${sname(k)}`, `${n} ${sname(k)}${n === 1 ? '' : 's'}`) });
   }),
   def(T.shape, '拼出圖形', 'Which two pieces make the shape?', (d) => {
     const c = COLORS[pick(CK)].c, st = `fill="${c}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"`;
@@ -369,12 +391,12 @@ export default [
     const n = rnd(5, d ? 8 : 6), list = sample([...ANIMALS, 'teddy'], n), left = chance(0.5), sideZ = left ? '左' : '右', sideE = left ? 'left' : 'right';
     let i;
     do { i = rnd(1, n); } while (2 * i === n + 1);
-    const idx = left ? i - 1 : n - i, it = it2(list[idx]), full = L(`從${sideZ}邊數，第 ${i} 個是${it.zh}`, `The ${it.en} is ${nth(i)} from the ${sideE}`), hint = L(`從最${sideZ}邊的那一個開始數。`, `Start counting from the one on the far ${sideE}.`);
+    const idx = left ? i - 1 : n - i, it = it2(list[idx]), full = L(`從${sideZ}邊開始數，第 ${i} 個是${it.zh}`, `The ${it.en} is ${nth(i)} from the ${sideE}`), hint = L(`從最${sideZ}邊的那一個開始數。`, `Start counting from the one on the far ${sideE}.`);
     if (d > 0 && chance(0.35)) {
       const wrong = [n + 1 - i, ...sample(range(1, n).filter((x) => x !== i && x !== n + 1 - i), 2)];
-      return Q.pick({ p: L(`從${sideZ}邊數，${it.zh}是第幾個？`, `The ${it.en} is □ from the ${sideE}.`), say: L(`從${sideZ}邊數，${it.zh}是第幾個？`, `What position is the ${it.en} from the ${sideE}?`), scene: lineup(list, { s: n > 7 ? 70 : 84 }), right: ordS(i), wrong: wrong.map(ordS), hint, full });
+      return Q.pick({ p: L(`從${sideZ}邊開始數，${it.zh}是第幾個？`, `The ${it.en} is □ from the ${sideE}.`), say: L(`從${sideZ}邊開始數，${it.zh}是第幾個？`, `What position is the ${it.en} from the ${sideE}?`), scene: lineup(list, { s: n > 7 ? 70 : 84 }), right: ordS(i), wrong: wrong.map(ordS), hint, full });
     }
-    return Q.tap({ p: L(`從${sideZ}邊數，第 ${i} 個是誰？`, `Who is ${nth(i)} from the ${sideE}?`), cards: lineCards(list, idx, d ? '' : left ? 'l' : 'r', lineSize(n)), hint, full });
+    return Q.tap({ p: L(`從${sideZ}邊開始數，第 ${i} 個是誰？`, `Who is ${nth(i)} from the ${sideE}?`), cards: lineCards(list, idx, d ? '' : left ? 'l' : 'r', lineSize(n)), hint, full });
   }),
   def(T.ord, '序數的字', 'Ordinal words', (d) => {
     const n = rnd(1, d ? 10 : 5), others = sample(range(1, 10).filter((x) => x !== n), 3);

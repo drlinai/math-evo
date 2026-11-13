@@ -1,7 +1,7 @@
 // 小二下 LV3（新加坡 P2 Term 3）：40 種題型。兩步驟應用題、3 和 4 的乘法表、元和分的小數點寫法、分母 12 以內的分數。
 // 每個題型只是「概念」：故事、人名、東西、數字每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, who, who2, sayOf, FOODS } from './core.js?v=19';
-import { items, grp, row, col, fig, emo, ncard, pic, seq, bigEq, groups, array, table, note, cash, sgd, change, frac, fr, modelPW, modelCmp, svg, COLORS } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, who, who2, sayOf, FOODS } from './core.js?v=21';
+import { items, grp, row, col, fig, emo, ncard, pic, seq, bigEq, groups, array, table, note, cash, sgd, change, frac, fr, modelPW, modelCmp, svg, COLORS } from './vis.js?v=21';
 
 const T = { word: ['兩步驟應用題', 'Two-step word problems', '🧩'], times: ['乘法表', 'Times tables', '✖️'], money: ['錢', 'Money', '💰'], frac: ['分數', 'Fractions', '🍕'], bonus: ['加分題', 'Bonus', '⭐'] };
 const INK = '#2b2140', CK = Object.keys(COLORS), anyColor = () => COLORS[pick(CK)].c;
@@ -115,7 +115,7 @@ function skip(k, d) {
   const n = d === 2 ? 5 : 4, s = rnd(1, d === 0 ? 3 : 11 - n), back = d === 2 && chance(0.3), list = range(s, s + n - 1).map((i) => i * k), miss = d === 0 ? n - 1 : d === 1 ? pick([n - 1, n - 1, n - 2]) : rnd(1, n - 1);
   if (back) list.reverse();
   const en = k === 3 ? 'threes' : 'fours';
-  return Q.num({ p: back ? L(`${k} 個 ${k} 個倒著數，少了哪一個數？`, `Count back in ${en}. What is the missing number?`) : L(`${k} 個 ${k} 個數，少了哪一個數？`, `Count in ${en}. What is the missing number?`), scene: seq(list.map((v, i) => (i === miss ? '?' : v))), bg: 'num', ans: list[miss], lo: 1, hi: 10 * k,
+  return Q.num({ p: back ? L(`${k} 個 ${k} 個倒過來數，少了哪一個數？`, `Count back in ${en}. What is the missing number?`) : L(`${k} 個 ${k} 個數，少了哪一個數？`, `Count in ${en}. What is the missing number?`), scene: seq(list.map((v, i) => (i === miss ? '?' : v))), bg: 'num', ans: list[miss], lo: 1, hi: 10 * k,
     hint: back ? L(`每次少 ${k}。`, `Take away ${k} each time.`) : L(`每次多 ${k}。`, `Add ${k} each time.`), full: list.join(', ') });
 }
 // a × k（k 是 3 或 4）
@@ -224,11 +224,6 @@ export default [
     let b, c; do { b = rnd(lo, hi); c = rnd(lo, hi); } while (b === c || b === a || c === a);
     return Q.tap({ p: `${L(`${p.n}有 ${a} ${o.m}${o.zh}，${z1}又買了 ${b} ${o.m}，${z2}再買 ${c} ${o.m}。`, `${p.n} had ${a} ${o.ens}. ${p.He} bought ${b} more on ${e1} and ${c} more on ${e2}.`)}${sp()}${ask}`,
       right: miniPW([[a, a], [b, b], [c, c]], '?'), wrong: [miniPW([[b, b], [c, c], ['?', a]], a), miniPW([[a, a], [b, b], ['?', c]], c)], bg: 'sky', full: `${a} + ${b} + ${c} = □`, hint: L('越買越多，全部合起來才是要找的數。', 'They are all put together. The total is what we must find.') });
-  }),
-  def(T.word, '找多餘資訊', 'Find the number that is not needed', (d) => {
-    const t = pick(TALES)(d), [n, ex] = t.extra(), ask = L('要算出答案，哪一個數用不到？', 'Which number is not needed?'), body = chance(0.5) ? `${ex}${sp()}${t.s}` : `${t.s}${sp()}${ex}`;
-    return Q.pick({ p: ask, say: sayOf(`${body} ${t.q} ${ask}`), scene: storyBox(`${body}${sp()}${t.q}`, t.e), bg: 'sky', right: n, wrong: t.nums, sort: true,
-      hint: L('問題在問什麼？哪一個數和它沒有關係？', 'What is the question asking? Which number has nothing to do with it?'), full: L(`用不到 ${n}`, `${n} is not needed`) });
   }),
   def(T.word, '先求什麼', 'What to find first', (d) => {
     const t = pick(TALES)(d), ask = L('要先算出什麼？', 'What must you find first?');

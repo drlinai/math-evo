@@ -1,7 +1,7 @@
 // 中班（新加坡 K1）：34 種題型。數字只用 1~10，全部用圖片作答，不寫算式。
 // 每個題型只是「概念」：東西、顏色、情境每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=19';
-import { items, pile, grp, row, col, fig, emo, ncard, pic, seq, dice, shape, bars, tallBars, posScene, bond, svg, COLORS, SHAPES, BASIC, cname, sname } from './vis.js?v=19';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=21';
+import { items, pile, grp, row, col, fig, emo, ncard, pic, seq, dice, shape, bars, tallBars, posScene, bond, svg, COLORS, SHAPES, BASIC, cname, sname } from './vis.js?v=21';
 
 const T = { count: ['點數', 'Counting', '🔢'], numeral: ['數字', 'Numbers', '7️⃣'], compare: ['比較', 'Comparing', '⚖️'], sort: ['分類', 'Sorting', '🗂️'], match: ['配對', 'Matching', '🧩'],
   order: ['排序', 'Ordering', '📶'], pattern: ['型式', 'Patterns', '🔁'], shape: ['形狀', 'Shapes', '🔺'], pos: ['位置', 'Position', '📍'], bonus: ['加分題', 'Bonus', '⭐'] };
@@ -42,7 +42,7 @@ export default [
   // ---- 數字 ----
   def(T.numeral, '聽數字點數字', 'Hear it, tap it', (d) => {
     const n = rnd(1, 10), wrong = sample(range(1, 10).filter((x) => x !== n), 3);
-    return Q.pick({ p: L('聽聽看，點出你聽到的數字。', 'Listen, then tap the number you hear.'), say: L(`請點數字${ZH_NUM[n]}`, `Tap number ${n}.`), scene: emo('👂', 150), right: n, wrong, full: n });
+    return Q.pick({ p: L('聽聽看，點出你聽到的數字。', 'Listen, then tap the number you hear.'), say: L(`聽聽看，點出你聽到的數字。請點數字${ZH_NUM[n]}。`, `Listen, then tap the number you hear. Tap number ${n}.`), scene: emo('👂', 150), right: n, wrong, full: n });
   }),
   def(T.numeral, '數字配數量', 'Match number and group', (d) => {
     const it = thing(), [n, a, b] = distinct(3, 1, d ? 10 : 6);
