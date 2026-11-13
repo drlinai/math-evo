@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=25';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=25';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=25';
-import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=25';
-import { t, getLang, monsterName } from './i18n.js?v=25';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=27';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=27';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=27';
+import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=27';
+import { t, getLang, monsterName } from './i18n.js?v=27';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);

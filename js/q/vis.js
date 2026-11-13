@@ -1,7 +1,7 @@
 // 題目用的圖：全部回傳 HTML／SVG 字串，可以直接放進題目區（約 930×300）或選項卡片裡。
 // 卡片內可用空間：Q.tap / Q.multi / Q.order 2 張 ≈ 380×230、3 張 ≈ 260×230、4 張 ≈ 190×230、5 張 ≈ 150×230；有 top 時卡片高約 120。
-import { src } from '../sprites.js?v=25';
-import { L, rnd, shuffle, range, THINGS } from './core.js?v=25';
+import { src } from '../sprites.js?v=27';
+import { L, rnd, shuffle, range, THINGS } from './core.js?v=27';
 
 const INK = '#2b2140';
 const f = (v) => (Math.round(v * 10) / 10).toString();
