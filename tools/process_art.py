@@ -32,7 +32,7 @@ SHEETS = {
     'monsters': dict(file='04_monsters.jpeg', mode='grid', cols=4, rows=2, maxh=640,
                      names=['m_slime', 'm_bat', 'm_imp', 'm_golem', 'm_ghost', 'm_shroom', 'm_king', 'm_dragon']),
     'gear': dict(file='05_gear.jpeg', mode='grid', cols=4, rows=3, maxh=440,
-                 names=['crown1', 'crown2', 'crown3', 'aura', 'wings1', 'wings2', 'wings3', 'ic_strong',
+                 names=['crown1_old', 'crown2_old', 'crown3_old', 'aura', 'wings1', 'wings2', 'wings3', 'ic_strong',
                         'cape1', 'cape2', 'cape3', 'ic_tall']),
     'powers': dict(file='06_powers.jpeg', mode='grid', cols=4, rows=4, maxh=380,
                    names=['claw1', 'claw2', 'claw3', 'shield1', 'fang1', 'fang2', 'fang3', 'shield2',
@@ -41,9 +41,11 @@ SHEETS = {
     # 夥伴：上排 3 個骷髏兵、下排 3 個樹精（這張圖還沒放進 art_src 時會自動跳過）
     'buddies': dict(file='13_buddies.jpeg', mode='rows', rows=[3, 4], maxh=300,
                     names=['skel1', 'skel2', 'skel3', 'tree1', 'tree_plain', 'tree2', 'tree3']),
+    # 重畫的皇冠：三頂都是「由上往下看」的角度（戴在頭上才不會看到內側）；05_gear 裡舊的三頂不用了
+    'crowns': dict(file='14_crowns.jpeg', mode='row', names=['crown1', 'crown2', 'crown3'], maxh=440),
 }
 # 圖集裡有、但遊戲已經不用的圖形（盾牌與武器升級卡已取消）
-SKIP = {'tree_plain', 'claw1', 'claw2', 'claw3', 'fang1', 'fang2', 'fang3', 'sword1', 'sword2', 'sword3', 'shield1', 'shield2', 'shield3'}
+SKIP = {'crown1_old', 'crown2_old', 'crown3_old', 'tree_plain', 'claw1', 'claw2', 'claw3', 'fang1', 'fang2', 'fang3', 'sword1', 'sword2', 'sword3', 'shield1', 'shield2', 'shield3'}
 BACKGROUNDS = {'bg_dino': '08_bg_dino.jpeg', 'bg_sea': '09_bg_sea.jpeg', 'bg_boy': '10_bg_boy.jpeg',
                'bg_battle': '11_bg_battle.jpeg', 'bg_title': '12_bg_title.jpeg'}
 

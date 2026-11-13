@@ -1,7 +1,7 @@
 // 小一下 LV4（新加坡 P1 Term 4）：35 種題型。除法（只用圖和文字，不出現除號）、時間、錢。
 // 每個題型只是「概念」：東西、人名、情境、數字每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, cnt, who, who2, sayOf, FOODS, TOYS } from './core.js?v=27';
-import { items, grp, row, col, fig, emo, label, pic, bigEq, groups, clock, timeStr, digital, coin, note, cash, change, calendar } from './vis.js?v=27';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, cnt, who, who2, sayOf, FOODS, TOYS } from './core.js?v=29';
+import { items, grp, row, col, fig, emo, label, pic, bigEq, groups, clock, timeStr, digital, coin, note, cash, change, calendar } from './vis.js?v=29';
 
 const T = { div: ['除法', 'Division', '🍪'], time: ['時間', 'Time', '🕐'], money: ['錢', 'Money', '💰'], mix: ['綜合', 'Mixed practice', '🧠'], bonus: ['加分題', 'Bonus', '⭐'] };
 const sum = (a) => a.reduce((x, y) => x + y, 0);

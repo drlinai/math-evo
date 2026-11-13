@@ -1,8 +1,8 @@
 // 圖片版美術：角色、怪物、升級配件都用 img/*.webp（由 tools/process_art.py 從 art_src 產生）
 // 對外介面與舊的 characters.js（程式畫的 SVG）相同，所以遊戲其他部分不用改。
-import { ART } from './art-meta.js?v=27';
+import { ART } from './art-meta.js?v=29';
 
-const AV = 1; // 圖片版本：換圖時 +1，避免瀏覽器用到舊圖
+const AV = 2; // 圖片版本：換圖時 +1，避免瀏覽器用到舊圖
 export const src = (name) => `img/${name}.webp?a=${AV}`;
 // 小圖示（題目物件、卡片圖示…）
 export const pic = (name, cls = 'pic') => `<img class="${cls}" src="${src(name)}" alt="" draggable="false">`;
@@ -22,7 +22,7 @@ export function formOf(level) { return Math.min(3, Math.floor(level / 5)); }
 const FORMS = {
   dino: [
     { h: 205, head: [0.57, 0.02], crown: 0.3, back: [0.3, 0.44], tilt: -6, cape: [0.3, 0.4, 1.35, 22] },
-    { h: 285, head: [0.63, 0.1], crown: 0.17, back: [0.47, 0.43], tilt: -14, cape: [0.5, 0.36, 1.25, 30] },
+    { h: 285, head: [0.63, 0.1], crown: 0.19, back: [0.47, 0.43], tilt: -14, cape: [0.5, 0.36, 1.25, 30] },
     { h: 300, head: [0.73, 0.03], crown: 0.19, back: [0.44, 0.4], tilt: -8, cape: [0.44, 0.32, 1.3, 26] },
     { h: 350, head: [0.67, 0.115], crown: 0.17, back: [0.5, 0.45], tilt: -6, cape: [0.5, 0.36, 1.25, 20], wing: [0.5, 0.22, 1.38] },
   ],
@@ -34,7 +34,7 @@ const FORMS = {
   ],
   boy: [
     { h: 235, head: [0.39, 0.06], crown: 0.27, back: [0.42, 0.52], tilt: 0 },
-    { h: 295, head: [0.5, 0.075], crown: 0.215, back: [0.5, 0.58], tilt: 0 },
+    { h: 295, head: [0.5, 0.105], crown: 0.215, back: [0.5, 0.58], tilt: 0 },
     { h: 340, head: [0.45, 0.2], crown: 0.18, back: [0.49, 0.6], tilt: 0, cape: [0.49, 0.5, 1.45, 0] },
     { h: 380, head: [0.43, 0.22], crown: 0.17, back: [0.48, 0.62], tilt: 0, cape: [0.48, 0.5, 1.5, 0] },
   ],
