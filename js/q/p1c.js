@@ -1,7 +1,7 @@
 // 小一下 LV3（新加坡 P1 Term 3）：39 種題型。加減法擴到 100（開始用直式）、用公分量長度、乘法的「幾組幾個」。
 // 每個題型只是「概念」：數字、東西、人名、顏色每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, cnt, who, who2, THINGS, ANIMALS, FOODS } from './core.js?v=21';
-import { items, groups, array, row, col, fig, label, pic, seq, bigEq, vsum, blocks, ruler, bars, tallBars, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=21';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, cnt, who, who2, THINGS, ANIMALS, FOODS } from './core.js?v=22';
+import { items, groups, array, row, col, fig, label, pic, seq, bigEq, vsum, blocks, ruler, bars, tallBars, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=22';
 
 const T = { add: ['100 以內的加法', 'Addition within 100', '➕'], sub: ['100 以內的減法', 'Subtraction within 100', '➖'], len: ['長度', 'Length', '📏'], mul: ['乘法', 'Multiplication', '✖️'], bonus: ['加分題', 'Bonus', '⭐'] };
 const CK = Object.keys(COLORS), INK = '#2b2140';

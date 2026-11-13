@@ -1,6 +1,6 @@
 // 大班（新加坡 K2）：40 種題型。數到 20、分合到 10，開始認數字的「字」（中文版認國字、英文版認英文單字）。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=21';
-import { items, pile, grp, row, col, fig, emo, ncard, label, pic, seq, tenFrame, shape, bars, bond, ruler, gridMap, lineup, numLine, svg, COLORS, SHAPES, BASIC, cname, sname } from './vis.js?v=21';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=22';
+import { items, pile, grp, row, col, fig, emo, ncard, label, pic, seq, tenFrame, shape, bars, bond, ruler, gridMap, lineup, numLine, svg, COLORS, SHAPES, BASIC, cname, sname } from './vis.js?v=22';
 
 const T = { count: ['點數', 'Counting', '🔢'], numeral: ['數字', 'Numbers', '7️⃣'], word: ['數字的字', 'Number words', '🔤'], seq: ['順序', 'Number order', '➡️'], compare: ['比較', 'Comparing', '⚖️'],
   bond: ['分合', 'Number bonds', '🫧'], pattern: ['型式', 'Patterns', '🔁'], sort: ['分類', 'Sorting', '🗂️'], order: ['排序', 'Ordering', '📶'], shape: ['形狀', 'Shapes', '🔺'], pos: ['位置', 'Position', '📍'], bonus: ['加分題', 'Bonus', '⭐'] };

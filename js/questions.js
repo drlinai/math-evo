@@ -1,6 +1,6 @@
 // 題目引擎：十以內加減。看得見數得到的東西 + 錢幣 + 純數字算式；繁中 / English
-import { getLang, num } from './i18n.js?v=21';
-import { icon } from './sprites.js?v=21';
+import { getLang, num } from './i18n.js?v=22';
+import { icon } from './sprites.js?v=22';
 
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];

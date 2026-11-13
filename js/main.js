@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=21';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=21';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=21';
-import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=21';
-import { t, getLang, monsterName } from './i18n.js?v=21';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=22';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=22';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=22';
+import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=22';
+import { t, getLang, monsterName } from './i18n.js?v=22';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -173,13 +173,13 @@ function showSettings() {
   const L = getLang();
   m.innerHTML = `<div class="mbox"><h3>${t('settings')}</h3>
     <div class="mrow"><span>${t('langLabel')}</span><button class="mbtn half ${L === 'zh' ? 'sel' : ''}" data-l="zh">繁體中文</button><button class="mbtn half ${L === 'en' ? 'sel' : ''}" data-l="en">English</button></div>
+    <div class="mrow"><span>${t('gradeLabel')}</span><select class="msel" id="gs">${GRADES.map((g) => `<option value="${g.id}" ${state.grade === g.id ? 'selected' : ''}>${gradeName(g)}（${t('learned', progressOf(state.prog, g.id).pct)}）</option>`).join('')}</select></div>
     <button class="mbtn" id="vo">${t('voice', state.settings.voice)}</button>
     <button class="mbtn" id="tv">${t('testVoice')}</button><div class="mnote" id="tvr">${t('voiceTip')}</div>
-    <button class="mbtn" id="dm">${t('demoBtn')}</button>
     <button class="mbtn danger" id="rs">${t('reset')}</button>
     <button class="mbtn ok" id="cl">${t('close')}</button></div>`;
   stage.appendChild(m);
-  m.querySelector('#dm').onclick = () => { unlockAudio(); sfx.tap(); showDemo(state.demoAt); };
+  m.querySelector('#gs').onchange = (e) => { state.grade = e.target.value; save(); showHome(); showSettings(); }; // 換年級：主畫面的進度跟著換
   m.querySelectorAll('[data-l]').forEach((b) => { b.onclick = () => { sfx.tap(); chooseLang(b.dataset.l); showHome(); showSettings(); }; });
   m.querySelector('#vo').onclick = (e) => { state.settings.voice = !state.settings.voice; save(); e.currentTarget.textContent = t('voice', state.settings.voice); };
   m.querySelector('#tv').onclick = async () => {
@@ -253,8 +253,8 @@ async function mission(w, chk) {
 }
 
 // =====================================================================
-//  題型測試（家長用）：照總編號 1~N 一個題型出一題，答對自動跳下一個題型。
-//  進入方式：設定 →「題型測試」，或網址加上 ?demo（?demo=120 從第 120 號開始）
+//  題型測試（開發者自己用，不放進遊戲選單）：照總編號 1~N 一個題型出一題，答對自動跳下一個題型。
+//  進入方式：只能從網址加上 ?demo（?demo=120 從第 120 號開始）
 // =====================================================================
 let demoD = 1; // 測試時用的難度：0 第一次碰到、1 練過、2 複習（完整範圍）
 function showDemo(n) {

@@ -1,7 +1,7 @@
 // 小二上 LV1（新加坡 P2 Term 1）：38 種題型。數到 1000、三位數加減直式、應用題配模型圖、長度加入公尺。
 // 每個題型只是「概念」：數字、東西、人名、情境每次都隨機換。
-import { Q, def, L, EN, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, who, who2 } from './core.js?v=21';
-import { row, col, fig, emo, ncard, label, seq, bigEq, vsum, numLine, blocks, ruler, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=21';
+import { Q, def, L, EN, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, who, who2 } from './core.js?v=22';
+import { row, col, fig, emo, ncard, label, seq, bigEq, vsum, numLine, blocks, ruler, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=22';
 
 const T = { num: ['1000 以內的數', 'Numbers to 1000', '🔢'], add: ['1000 以內的加法', 'Addition within 1000', '➕'], sub: ['1000 以內的減法', 'Subtraction within 1000', '➖'], mix: ['加減綜合', 'Addition and subtraction', '🧮'],
   word: ['應用題', 'Word problems', '📖'], len: ['長度', 'Length', '📏'], bonus: ['加分題', 'Bonus', '⭐'] };

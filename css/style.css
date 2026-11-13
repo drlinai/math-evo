@@ -286,6 +286,7 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .mrow { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 26px; }
 .mrow span { flex: none; }
 .mbtn.half { flex: 1; margin-top: 0; padding: 12px 6px; font-size: 26px; }
+.msel { flex: 1; min-width: 0; padding: 9px 12px; font: inherit; font-size: 26px; font-weight: 800; color: var(--ink); background: #fff; border: 5px solid var(--ink); border-radius: 22px; box-shadow: 0 6px 0 var(--ink); }
 .mbtn.sel { background: #ffd43a; box-shadow: 0 6px 0 var(--ink), 0 0 0 4px #ff9f1c; }
 
 /* ---------- 純數字算式 ---------- */
