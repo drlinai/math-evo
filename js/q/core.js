@@ -8,8 +8,8 @@
 //   full    答對後秀出的完整句子（HTML） fullSay  答對後唸的句子
 //   hint    第一次答錯時唸的提示  count  答錯時要標上 1、2、3… 的元素（CSS 選擇器）
 //   beats   唸完題目後要敲幾下聲音（數聲音的題目）
-import { getLang } from '../i18n.js?v=17';
-import { icon } from '../sprites.js?v=17';
+import { getLang } from '../i18n.js?v=19';
+import { icon } from '../sprites.js?v=19';
 
 // ---------- 語言 ----------
 export const EN = () => getLang() === 'en';

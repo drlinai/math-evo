@@ -1,15 +1,15 @@
 // 年級與題型總表、學習進度、每次任務要出哪些題型
-import { pick, sample } from './core.js?v=17';
-import k1 from './k1.js?v=17';
-import k2 from './k2.js?v=17';
-import p1a from './p1a.js?v=17';
-import p1b from './p1b.js?v=17';
-import p1c from './p1c.js?v=17';
-import p1d from './p1d.js?v=17';
-import p2a from './p2a.js?v=17';
-import p2b from './p2b.js?v=17';
-import p2c from './p2c.js?v=17';
-import p2d from './p2d.js?v=17';
+import { pick, sample } from './core.js?v=19';
+import k1 from './k1.js?v=19';
+import k2 from './k2.js?v=19';
+import p1a from './p1a.js?v=19';
+import p1b from './p1b.js?v=19';
+import p1c from './p1c.js?v=19';
+import p1d from './p1d.js?v=19';
+import p2a from './p2a.js?v=19';
+import p2b from './p2b.js?v=19';
+import p2c from './p2c.js?v=19';
+import p2d from './p2d.js?v=19';
 
 // 年級（順序就是標題畫面上按鈕的順序）
 export const GRADES = [
@@ -25,6 +25,9 @@ export const GRADES = [
   { id: 'p2d', zh: '小二下（LV4）', en: 'P2 · LV4', types: p2d },
 ];
 GRADES.forEach((g) => g.types.forEach((t, i) => { t.id = `${g.id}-${i + 1}`; }));
+// 題型總編號 1~N（照年級與文件順序），題型測試畫面用這個編號
+export const ALL = GRADES.flatMap((g) => g.types.map((type, i) => ({ grade: g, type, nth: i + 1 })));
+ALL.forEach((x, i) => { x.no = i + 1; x.type.no = i + 1; });
 export const gradeOf = (id) => GRADES.find((g) => g.id === id) || null;
 
 export const NEED = 2; // 一個題型「第一次就答對」幾題算學會

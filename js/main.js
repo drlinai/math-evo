@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=17';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=17';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=17';
-import { GRADES, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=17';
-import { t, getLang, monsterName } from './i18n.js?v=17';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=19';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=19';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=19';
+import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=19';
+import { t, getLang, monsterName } from './i18n.js?v=19';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -175,9 +175,11 @@ function showSettings() {
     <div class="mrow"><span>${t('langLabel')}</span><button class="mbtn half ${L === 'zh' ? 'sel' : ''}" data-l="zh">繁體中文</button><button class="mbtn half ${L === 'en' ? 'sel' : ''}" data-l="en">English</button></div>
     <button class="mbtn" id="vo">${t('voice', state.settings.voice)}</button>
     <button class="mbtn" id="tv">${t('testVoice')}</button><div class="mnote" id="tvr">${t('voiceTip')}</div>
+    <button class="mbtn" id="dm">${t('demoBtn')}</button>
     <button class="mbtn danger" id="rs">${t('reset')}</button>
     <button class="mbtn ok" id="cl">${t('close')}</button></div>`;
   stage.appendChild(m);
+  m.querySelector('#dm').onclick = () => { unlockAudio(); sfx.tap(); showDemo(state.demoAt); };
   m.querySelectorAll('[data-l]').forEach((b) => { b.onclick = () => { sfx.tap(); chooseLang(b.dataset.l); showHome(); showSettings(); }; });
   m.querySelector('#vo').onclick = (e) => { state.settings.voice = !state.settings.voice; save(); e.currentTarget.textContent = t('voice', state.settings.voice); };
   m.querySelector('#tv').onclick = async () => {
@@ -250,6 +252,44 @@ async function mission(w, chk) {
   if (ch.xp >= xpNeed(ch.level)) await levelUps(w, chk); else showHome();
 }
 
+// =====================================================================
+//  題型測試（家長用）：照總編號 1~N 一個題型出一題，答對自動跳下一個題型。
+//  進入方式：設定 →「題型測試」，或網址加上 ?demo（?demo=120 從第 120 號開始）
+// =====================================================================
+let demoD = 1; // 測試時用的難度：0 第一次碰到、1 練過、2 複習（完整範圍）
+function showDemo(n) {
+  n = Math.max(1, Math.min(ALL.length, Math.round(+n) || 1));
+  state.demoAt = n; save();
+  flow(async (w) => {
+    const { grade, type: tp, nth } = ALL[n - 1], en = getLang() === 'en', id = state.current || 'dino';
+    screen('mission', `<div class="bg dim">${sceneSVG(id)}</div>
+      <div class="mtop demo"><button class="rbtn" id="quit">🏠</button>
+        <div class="dno"><b>#${n}</b><small>/ ${ALL.length}</small></div>
+        <div class="dinfo"><span>${t('demoNth', gradeName(grade), nth)}</span><b>${tp.topic[2]} ${en ? tp.topic[1] : tp.topic[0]}：${en ? tp.en : tp.zh}</b></div>
+        <button class="dbtn" id="dprev">◀</button><button class="dbtn" id="dre">🔁</button><button class="dbtn" id="dnext">▶</button>
+        <input class="dinput" id="dnum" type="number" inputmode="numeric" min="1" max="${ALL.length}" placeholder="#"><button class="dbtn wide" id="dgo">${t('demoGo')}</button>
+        <button class="dbtn wide" id="dd">${t('demoD', demoD)}</button><button class="dbtn" id="dlang">🌐</button></div>
+      <div class="prompt"><button class="rbtn spk" id="spk">🔊</button><div id="ptext"></div></div>
+      <div class="qscene" id="qscene"></div><div class="answers" id="answers"></div>
+      <div class="mini" id="mini">${charSVG(id, state.chars[id], { fit: true })}</div><div class="eq" id="eq"></div><div class="banner" id="banner"></div>`);
+    $('#quit').onclick = () => { sfx.tap(); state.current && gradeOf(state.grade) ? showHome() : showTitle(); };
+    $('#dprev').onclick = () => { sfx.tap(); showDemo(n - 1); };
+    $('#dnext').onclick = () => { sfx.tap(); showDemo(n + 1); };
+    $('#dre').onclick = () => { sfx.tap(); showDemo(n); };
+    const go = () => { const v = +$('#dnum').value; if (v >= 1) { sfx.tap(); showDemo(v); } };
+    $('#dgo').onclick = go;
+    $('#dnum').onkeydown = (e) => { if (e.key === 'Enter') go(); };
+    $('#dd').onclick = () => { sfx.tap(); demoD = (demoD + 1) % 3; showDemo(n); };
+    $('#dlang').onclick = () => { sfx.tap(); chooseLang(en ? 'zh' : 'en'); showDemo(n); };
+    let q;
+    try { q = tp.gen(demoD); } catch (e) { console.error('題型出錯', n, tp.id, e); $('#ptext').textContent = `#${n} error: ${e.message}`; return; }
+    if (tp.bonus) q.prompt = `<span class="bonustag">${t('bonusTag')}</span>${q.prompt}`;
+    await w(ask(q));
+    if (n < ALL.length) { showDemo(n + 1); return; }
+    $('#ptext').textContent = t('demoDone', ALL.length); $('#qscene').innerHTML = ''; $('#answers').innerHTML = ''; confetti(80); sfx.fanfare();
+  });
+}
+
 async function banner(top, main, say) {
   const b = $('#banner');
   b.innerHTML = `<small>${top}</small><b>${main}</b>`;
@@ -269,7 +309,7 @@ function ask(q) {
   return new Promise((resolve) => {
     const scene = $('#qscene'), ans = $('#answers'), mini = $('#mini'), pt = $('#ptext');
     let tries = 0, locked = false;
-    window.__game.q = q; // 除錯用：目前這一題
+    if (window.__game) window.__game.q = q; // 除錯用：目前這一題
     pt.innerHTML = q.prompt;
     scene.className = `qscene${q.stack ? ' stack' : ''}`;
     scene.dataset.bg = q.bg;
@@ -567,7 +607,14 @@ function transform(id, before, ch, evo, card) {
 load();
 preloadArt();
 fit();
-showTitle();
+// 網址有 ?demo 就進題型測試（?demo=120 從第 120 號開始）。先按一下按鈕才開始：瀏覽器要有人點過才能發出語音
+const demoArg = new URLSearchParams(location.search).get('demo');
+if (demoArg !== null) {
+  const n = Math.max(1, Math.min(ALL.length, Math.round(+demoArg) || state.demoAt || 1));
+  screen('title', `<div class="bg title-bg"></div><div class="stars"></div><h1 class="logo"><span>${t('title1')}</span><span class="l2">${t('title2')}</span></h1>
+    <button class="bigbtn" id="go" style="bottom:300px">${t('demoBtn')}　#${n} ▶</button>`);
+  $('#go').onclick = () => { unlockAudio(); sfx.fanfare(); showDemo(n); };
+} else showTitle();
 // 開發除錯用
 window.__game = { state, save, showHome, showSelect, showTitle, chooseLang, levelUps: () => flow(levelUps), mission: () => flow(mission), cur,
   // 直接試某個題型：__game.tryQ('k1', 3) = 中班第 3 種題型（d=難度 0~2）
