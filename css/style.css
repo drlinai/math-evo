@@ -329,3 +329,7 @@ html[lang=en] .paybtn { font-size: 50px; }
 .mbox .mbtn { margin-top: 10px; padding: 10px; font-size: 26px; }
 .mbox .mbtn.half { margin-top: 0; padding: 9px 6px; }
 .mnote { min-height: 22px; margin-top: 6px; font-size: 17px; line-height: 1.3; }
+
+/* 全螢幕說明（iPhone 不能直接全螢幕）；從主畫面圖示開的就不用全螢幕按鈕 */
+.fshelp { text-align: left; font-size: 24px; line-height: 1.45; font-weight: 600; } .fshelp p { margin: 8px 0; } .fshelp b { font-weight: 900; }
+.standalone #fs { display: none; }

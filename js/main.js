@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=22';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=22';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=22';
-import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=22';
-import { t, getLang, monsterName } from './i18n.js?v=22';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=23';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=23';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=23';
+import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=23';
+import { t, getLang, monsterName } from './i18n.js?v=23';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -38,11 +38,31 @@ function fit() {
 window.addEventListener('resize', fit);
 window.addEventListener('orientationchange', () => setTimeout(fit, 200));
 
+// 全螢幕。iPhone 的瀏覽器沒有全螢幕功能（只有 iPad、Android、電腦有）：切不成就教他「加入主畫面」
+const isFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+// 已經是從主畫面圖示開的（本來就全螢幕）→ 全螢幕按鈕用不到，藏起來
+const standalone = () => window.navigator.standalone === true || !!window.matchMedia?.('(display-mode: fullscreen), (display-mode: standalone)').matches;
+if (standalone()) document.documentElement.classList.add('standalone');
 function toggleFS() {
-  const d = document, e = d.documentElement;
-  if (d.fullscreenElement || d.webkitFullscreenElement) (d.exitFullscreen || d.webkitExitFullscreen)?.call(d);
-  else (e.requestFullscreen || e.webkitRequestFullscreen)?.call(e);
+  const d = document, e = d.documentElement, req = e.requestFullscreen || e.webkitRequestFullscreen;
+  if (isFS()) {
+    try { screen.orientation?.unlock?.(); } catch (err) { /* 不支援就算了 */ }
+    (d.exitFullscreen || d.webkitExitFullscreen)?.call(d);
+  } else if (req) {
+    let failed = false;
+    try { Promise.resolve(req.call(e, { navigationUI: 'hide' })).catch(() => { failed = true; fsHelp(); }); } catch (err) { failed = true; fsHelp(); }
+    // 手機：全螢幕後轉成橫的（只有 Android 支援，其他裝置會被忽略）；過一下還是沒變全螢幕 → 顯示說明
+    setTimeout(() => { if (isFS()) { try { screen.orientation?.lock?.('landscape')?.catch?.(() => {}); } catch (err) { /* 不支援 */ } } else if (!failed) fsHelp(); fit(); }, 700);
+  } else fsHelp();
   setTimeout(fit, 300);
+}
+function fsHelp() {
+  if (stage.querySelector('.modal.fsh')) return;
+  const m = document.createElement('div');
+  m.className = 'modal fsh';
+  m.innerHTML = `<div class="mbox"><h3>${t('fsTitle')}</h3><div class="fshelp">${t('fsHelp')}</div><button class="mbtn ok" id="cl">${t('close')}</button></div>`;
+  stage.appendChild(m);
+  m.querySelector('#cl').onclick = () => m.remove();
 }
 
 // ---- 特效 ----

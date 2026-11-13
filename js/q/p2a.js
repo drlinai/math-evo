@@ -1,7 +1,7 @@
 // 小二上 LV1（新加坡 P2 Term 1）：38 種題型。數到 1000、三位數加減直式、應用題配模型圖、長度加入公尺。
 // 每個題型只是「概念」：數字、東西、人名、情境每次都隨機換。
-import { Q, def, L, EN, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, who, who2 } from './core.js?v=22';
-import { row, col, fig, emo, ncard, label, seq, bigEq, vsum, numLine, blocks, ruler, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=22';
+import { Q, def, L, EN, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, who, who2 } from './core.js?v=23';
+import { row, col, fig, emo, ncard, label, seq, bigEq, vsum, numLine, blocks, ruler, modelPW, modelCmp, svg, COLORS, cname } from './vis.js?v=23';
 
 const T = { num: ['1000 以內的數', 'Numbers to 1000', '🔢'], add: ['1000 以內的加法', 'Addition within 1000', '➕'], sub: ['1000 以內的減法', 'Subtraction within 1000', '➖'], mix: ['加減綜合', 'Addition and subtraction', '🧮'],
   word: ['應用題', 'Word problems', '📖'], len: ['長度', 'Length', '📏'], bonus: ['加分題', 'Bonus', '⭐'] };
@@ -223,7 +223,7 @@ export default [
     }
     const hint = L('看個位數：0、2、4、6、8 是偶數；1、3、5、7、9 是奇數。', 'Look at the ones digit. 0, 2, 4, 6, 8 are even. 1, 3, 5, 7, 9 are odd.');
     if (d === 2 && chance(0.4)) {
-      const want = chance(0.5) ? 1 : 0, all = distinct(12, 100, 999), ans = all.find((v) => v % 2 === want), wrong = all.filter((v) => v % 2 !== want).slice(0, 3);
+      const want = chance(0.5) ? 1 : 0, ans = 2 * rnd(50, 499) + want, wrong = distinct(3, 50, 499).map((v) => 2 * v + 1 - want);
       return Q.pick({ p: want ? L('哪一個是奇數？', 'Which number is odd?') : L('哪一個是偶數？', 'Which number is even?'), scene: row(...shuffle([ans, ...wrong]).map((v) => ncard(v, 'sm'))), right: ans, wrong, sort: true, hint, full: want ? L(`${ans} 是奇數`, `${ans} is odd`) : L(`${ans} 是偶數`, `${ans} is even`) });
     }
     const n = d === 1 ? rnd(10, 99) : rnd(100, 999), isOdd = n % 2 === 1;
@@ -271,7 +271,9 @@ export default [
       hint: L('只看有藍色格子的那一直行。', 'Look at the column with the blue box.'), full: `${x} ${op} ${y} = ${z}` });
   }),
   def(T.mix, '用加法驗算', 'Check by adding', (d) => {
-    const [a, b] = d ? subPair(chance(0.5), chance(0.5)) : subPair(false, false), c = a - b, k = d ? rnd(0, 2) : 0;
+    let a, b;
+    do { [a, b] = d ? subPair(chance(0.5), chance(0.5)) : subPair(false, false); } while (a === 2 * b); // 答案和減數一樣的話，選項會重複
+    const c = a - b, k = d ? rnd(0, 2) : 0;
     if (k === 1) return Q.pick({ p: L(`${a} − ${b} = ${c}。哪一個加法可以用來驗算？`, `${a} − ${b} = ${c}. Which addition can you use to check?`), scene: vsum(a, b, '−', c), right: `${c} + ${b}`, wrong: [`${a} + ${b}`, `${a} + ${c}`],
       hint: L('把答案和減掉的數加回去，要等於原來的數。', 'Add the answer and the number you took away. You should get the first number.'), full: `${c} + ${b} = ${a}` });
     if (k === 2) {
