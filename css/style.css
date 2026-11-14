@@ -210,14 +210,31 @@ button { font: inherit; color: inherit; border: none; background: none; cursor: 
 .x-title { position: absolute; top: 30px; width: 100%; text-align: center; font-size: 60px; font-weight: 900; color: #ffd43a; -webkit-text-stroke: 9px var(--ink); paint-order: stroke fill; z-index: 3; }
 .x-hero { position: absolute; left: 50%; top: 84px; width: 420px; height: 420px; margin-left: -210px; z-index: 2; }
 .x-hero.charging { animation: charge .5s ease-in-out infinite; }
-.x-hero.charging.evo { animation: evocharge 2.4s ease-in forwards; filter: brightness(0) invert(1) drop-shadow(0 0 30px #fff); }
+/* 進化：白色剪影抖動後縮成一點（縮進光球裡） */
+.x-hero.charging.evo { animation: evoshrink 2.7s ease-in forwards; filter: brightness(0) invert(1) drop-shadow(0 0 18px #ffe9a0); }
 .x-hero.reveal { animation: reveal .7s cubic-bezier(.3, 1.6, .5, 1); }
-@keyframes charge { 0%, 100% { transform: translateX(-4px) scale(1); filter: brightness(1); } 50% { transform: translateX(4px) scale(1.04); filter: brightness(1.7) drop-shadow(0 0 24px #fff27a); } }
-@keyframes evocharge { 0% { transform: scale(1); } 15% { transform: scale(1.12); } 30% { transform: scale(.94); } 45% { transform: scale(1.2); } 60% { transform: scale(.9); } 75% { transform: scale(1.3); } 88% { transform: scale(.86); } 100% { transform: scale(1.5); } }
-@keyframes reveal { 0% { transform: scale(.3); filter: brightness(4); } 100% { transform: scale(1); filter: brightness(1); } }
-.flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 6; pointer-events: none; }
-.flash.go { animation: flash .9s; }
-@keyframes flash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
+.x-hero.reveal.evo { animation: revealevo .9s cubic-bezier(.3, 1.5, .5, 1); }
+/* 一般升級集氣：左右抖動、微微發光（不放大，升級前後的大小才比得出來） */
+@keyframes charge { 0%, 100% { transform: translateX(-6px); filter: brightness(1.05) drop-shadow(0 0 10px rgba(255, 230, 120, .6)); } 50% { transform: translateX(6px); filter: brightness(1.3) drop-shadow(0 0 22px #fff27a); } }
+/* 舊樣子淡出（邊抖邊變亮變透明）→ 新樣子在原地淡入（不縮放） */
+.x-hero.charging.fadeout { animation: xout .38s ease-in forwards; }
+@keyframes xout { 0% { opacity: 1; transform: translateX(-6px); filter: brightness(1.3) drop-shadow(0 0 22px #fff27a); } 50% { transform: translateX(6px); } 100% { opacity: 0; transform: translateX(0); filter: brightness(1.8) drop-shadow(0 0 30px #fff27a); } }
+.x-hero.appear { animation: xin .55s ease-out both; }
+@keyframes xin { 0% { opacity: 0; filter: brightness(1.7) drop-shadow(0 0 30px #fff27a); } 60% { opacity: 1; } 100% { opacity: 1; filter: brightness(1) drop-shadow(0 0 0 rgba(255, 240, 122, 0)); } }
+@keyframes evoshrink { 0% { transform: scale(1); } 12% { transform: scale(1.08); } 24% { transform: scale(.96); } 36% { transform: scale(1.1); } 48% { transform: scale(1); opacity: 1; } 78% { transform: scale(.06); opacity: 1; } 84%, 100% { transform: scale(0); opacity: 0; } }
+@keyframes reveal { 0% { transform: scale(.3); filter: brightness(1.8); } 100% { transform: scale(1); filter: brightness(1); } }
+@keyframes revealevo { 0% { transform: scale(0); filter: brightness(1.8); } 100% { transform: scale(1); filter: brightness(1); } }
+/* 升級特效（取代全畫面白光）：中心點由 js 設在角色身體中心 */
+.x-fx { position: absolute; width: 0; height: 0; z-index: 3; pointer-events: none; }
+.x-fx.back { z-index: 1; } /* 一般升級：光圈和星星在角色後面 */
+.x-fx .ring { position: absolute; left: -90px; top: -90px; width: 180px; height: 180px; border-radius: 50%; border: 12px solid #ffd84a; box-shadow: 0 0 24px #ffb800, inset 0 0 18px #fff3b0; animation: ringout .75s ease-out forwards; }
+.x-fx .ring.r2 { border-color: #fff3b0; animation-delay: .15s; opacity: 0; }
+@keyframes ringout { 0% { transform: scale(.15); opacity: 1; } 100% { transform: scale(2.8); opacity: 0; } }
+.x-fx i { position: absolute; left: -20px; top: -24px; width: 40px; font-style: normal; font-size: 40px; line-height: 48px; text-align: center; color: #ffd84a; text-shadow: 0 0 8px #ff9d00, 0 2px 0 #b86b00; transform: rotate(var(--a)) translateY(0) scale(.3); opacity: 0; animation: starfly .85s ease-out forwards; }
+@keyframes starfly { 0% { transform: rotate(var(--a)) translateY(0) scale(.3); opacity: 1; } 70% { opacity: 1; } 100% { transform: rotate(var(--a)) translateY(calc(-1 * var(--d))) scale(1); opacity: 0; } }
+/* 進化的光球：剪影縮進去的時候出現、變大，抖兩下後由 js 換成爆開的光圈 */
+.x-fx .orb { position: absolute; left: -46px; top: -46px; width: 92px; height: 92px; border-radius: 50%; background: radial-gradient(circle, #fffdf0 0 28%, #ffe36b 55%, rgba(255, 190, 40, 0) 72%); box-shadow: 0 0 30px 6px rgba(255, 200, 60, .55); transform: scale(0); animation: orbin 2.7s ease-in forwards; }
+@keyframes orbin { 0%, 45% { transform: scale(0); } 78% { transform: scale(1); } 84% { transform: scale(1.12) translateX(-6px); } 88% { transform: scale(1) translateX(6px); } 92% { transform: scale(1.12) translateX(-6px); } 96% { transform: scale(1) translateX(5px); } 100% { transform: scale(1.25); } }
 .x-info { position: absolute; left: 0; right: 0; top: 500px; bottom: 0; text-align: center; opacity: 0; transition: opacity .4s; z-index: 4; color: #fff; }
 .x-info.show { opacity: 1; }
 .x-name { font-size: 56px; font-weight: 900; -webkit-text-stroke: 9px var(--ink); paint-order: stroke fill; } .x-name small { font-size: 34px; color: #ffd43a; }

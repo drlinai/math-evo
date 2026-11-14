@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=32';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=32';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=32';
-import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=32';
-import { t, getLang, monsterName } from './i18n.js?v=32';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=34';
+import { formOf, charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=34';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=34';
+import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=34';
+import { t, getLang, monsterName } from './i18n.js?v=34';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -587,23 +587,43 @@ function battle(id, ch, evo) {
   });
 }
 
+// 一般升級集氣時的波紋扭曲：雜訊圖讓畫面像隔著水波一樣晃動，扭曲程度在 1.6 秒內慢慢變強
+const RIPPLE = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="xrip" x="-15%" y="-15%" width="130%" height="130%">
+  <feTurbulence type="turbulence" baseFrequency="0.004 0.035" numOctaves="1" seed="4" result="n"><animate attributeName="baseFrequency" dur="0.7s" values="0.004 0.035;0.006 0.05;0.004 0.035" repeatCount="indefinite"/></feTurbulence>
+  <feDisplacementMap in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G"><animate attributeName="scale" dur="1.6s" values="0;10;24" fill="freeze"/></feDisplacementMap></filter></svg>`;
+const rippled = (svg) => svg.replace(/(<svg[^>]*>)/, '$1<g filter="url(#xrip)">').replace(/<\/svg>$/, '</g></svg>');
 function transform(id, before, ch, evo, card) {
   return new Promise((resolve) => {
     const name = formName(id, ch.level);
     screen('transform', `<div class="bg dim2">${sceneSVG(id)}</div><div class="rays ${evo ? 'big' : ''}"></div>
       <div class="x-title">${evo ? t('evolving') : t('rising')}</div>
-      <div class="x-hero charging ${evo ? 'evo' : ''}" id="xhero">${charSVG(id, before, { fit: 'form', cam: ch, pad: true })}</div>
-      <div class="flash" id="flash"></div>
+      ${evo ? '' : RIPPLE}<div class="x-hero charging ${evo ? 'evo' : ''}" id="xhero">${evo ? charSVG(id, before, { fit: 'form', cam: ch, pad: true }) : rippled(charSVG(id, before, { fit: 'form', cam: ch, pad: true }))}</div>
+      <div class="x-fx" id="xfx"></div>
       <div class="x-info" id="xinfo"></div>`);
+    // 特效的中心＝角色身體的中心（光圈、光球、星星都從這裡出來；角色也以這點縮放）
+    const h = $('#xhero'), fx = $('#xfx'), sc = stage.getBoundingClientRect().width / 1024;
+    const body = h.querySelector(`image[href*="/${id}${formOf(before.level)}."]`)?.getBoundingClientRect(), hb = h.getBoundingClientRect(), sb = stage.getBoundingClientRect();
+    const cx = body ? (body.left + body.width / 2 - sb.left) / sc : 512, cy = body ? (body.top + body.height * 0.55 - sb.top) / sc : 330;
+    fx.style.left = `${cx}px`; fx.style.top = `${cy}px`;
+    h.style.transformOrigin = `${cx - (hb.left - sb.left) / sc}px ${cy - (hb.top - sb.top) / sc}px`;
     sfx.charge();
     (async () => {
-      await sleep(evo ? 2600 : 1600);
-      $('#flash').classList.add('go');
+      if (evo) {
+        // 進化：白色剪影抖動 → 縮成一顆光球 → 光球抖兩下 → 「啵」爆開，新樣子從光球裡長出來
+        fx.innerHTML = '<div class="orb"></div>';
+        await sleep(2700);
+      } else {
+        // 一般升級：舊樣子抖動＋波紋扭曲（越來越強）→ 舊樣子淡出 → 新樣子在原地淡入（不縮放，大小才比得出來）
+        await sleep(1600);
+        h.classList.add('fadeout');
+        await sleep(380);
+        fx.classList.add('back'); // 光圈在角色後面，不擋住新樣子
+      }
+      fx.innerHTML = `<div class="ring"></div>${evo ? '<div class="ring r2"></div>' : ''}` +
+        Array.from({ length: evo ? 14 : 10 }, (_, i) => `<i style="--a:${(i * 360) / (evo ? 14 : 10) + (i % 2) * 12}deg;--d:${150 + (i % 3) * 45}px;animation-delay:${(i % 3) * 0.04}s">${i % 3 ? '✦' : '★'}</i>`).join('');
       evo ? sfx.evolve() : sfx.levelup();
-      await sleep(280);
-      const h = $('#xhero');
-      // 閃光後直接換成升級後的樣子：從小彈到正常大小、由亮變正常（升級前後用同一個鏡頭拍，大小比得出來）
-      h.className = 'x-hero reveal';
+      // 換成升級後的樣子（升級前後用同一個鏡頭拍，大小比得出來）
+      h.className = evo ? 'x-hero reveal evo' : 'x-hero appear';
       h.innerHTML = charSVG(id, ch, { fit: 'form', pad: true });
       confetti(evo ? 80 : 40);
       $('.x-title').textContent = evo ? t('evoDone') : `Lv.${ch.level}！`;

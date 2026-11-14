@@ -1,7 +1,7 @@
 // 語音（瀏覽器內建 zh-TW）、音效與背景音樂（WebAudio 合成，不需音檔）
-import { state, save } from './state.js?v=32';
-import { getLang } from './i18n.js?v=32';
-import { chooseVoice } from './voices.js?v=32';
+import { state, save } from './state.js?v=34';
+import { getLang } from './i18n.js?v=34';
+import { chooseVoice } from './voices.js?v=34';
 
 let ctx = null, musicTimer = null, musicStep = 0, master = null;
 const voices = { zh: null, en: null };

@@ -1,15 +1,15 @@
 // 年級與題型總表、學習進度、每次任務要出哪些題型
-import { pick, sample } from './core.js?v=32';
-import k1 from './k1.js?v=32';
-import k2 from './k2.js?v=32';
-import p1a from './p1a.js?v=32';
-import p1b from './p1b.js?v=32';
-import p1c from './p1c.js?v=32';
-import p1d from './p1d.js?v=32';
-import p2a from './p2a.js?v=32';
-import p2b from './p2b.js?v=32';
-import p2c from './p2c.js?v=32';
-import p2d from './p2d.js?v=32';
+import { pick, sample } from './core.js?v=34';
+import k1 from './k1.js?v=34';
+import k2 from './k2.js?v=34';
+import p1a from './p1a.js?v=34';
+import p1b from './p1b.js?v=34';
+import p1c from './p1c.js?v=34';
+import p1d from './p1d.js?v=34';
+import p2a from './p2a.js?v=34';
+import p2b from './p2b.js?v=34';
+import p2c from './p2c.js?v=34';
+import p2d from './p2d.js?v=34';
 
 // 年級（順序就是標題畫面上按鈕的順序）
 export const GRADES = [
