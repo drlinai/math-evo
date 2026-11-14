@@ -1,7 +1,7 @@
 // 小二上 LV2（新加坡 P2 Term 2）：39 種題型。正式用 × 和 ÷，背 2、5、10 的乘法表；重量用公斤、公克；時間讀到 1 分鐘。
 // 每個題型只是「概念」：東西、人名、數字、情境每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, who, who2, sayOf, FOODS, TOYS } from './core.js?v=31';
-import { items, groups, array, grp, row, col, fig, emo, ncard, label, pic, seq, bigEq, blocks, clock, timeStr, scale, balance, svg } from './vis.js?v=31';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, thing, who, who2, sayOf, FOODS, TOYS } from './core.js?v=32';
+import { items, groups, array, grp, row, col, fig, emo, ncard, label, pic, seq, bigEq, blocks, clock, timeStr, scale, balance, svg } from './vis.js?v=32';
 
 const T = { md: ['乘除概念', 'Multiply and divide', '✖️'], table: ['乘法表', 'Times tables', '🔢'], word: ['乘除應用題', 'Word problems', '📖'],
   mass: ['重量', 'Mass', '⚖️'], time: ['時間', 'Time', '🕒'], bonus: ['加分題', 'Bonus', '⭐'] };

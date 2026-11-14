@@ -1,7 +1,7 @@
 // 中班（新加坡 K1）：34 種題型。數字只用 1~10，全部用圖片作答，不寫算式。
 // 每個題型只是「概念」：東西、顏色、情境每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=31';
-import { items, pile, grp, row, col, fig, emo, ncard, pic, seq, dice, shape, bars, tallBars, posScene, bond, svg, COLORS, SHAPES, BASIC, cname, sname } from './vis.js?v=31';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=32';
+import { items, pile, grp, row, col, fig, emo, ncard, pic, seq, dice, shape, bars, tallBars, posScene, bond, svg, COLORS, SHAPES, BASIC, cname, sname } from './vis.js?v=32';
 
 const T = { count: ['點數', 'Counting', '🔢'], numeral: ['數字', 'Numbers', '7️⃣'], compare: ['比較', 'Comparing', '⚖️'], sort: ['分類', 'Sorting', '🗂️'], match: ['配對', 'Matching', '🧩'],
   order: ['排序', 'Ordering', '📶'], pattern: ['型式', 'Patterns', '🔁'], shape: ['形狀', 'Shapes', '🔺'], pos: ['位置', 'Position', '📍'], bonus: ['加分題', 'Bonus', '⭐'] };

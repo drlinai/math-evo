@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=31';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=31';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=31';
-import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=31';
-import { t, getLang, monsterName } from './i18n.js?v=31';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=32';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=32';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=32';
+import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=32';
+import { t, getLang, monsterName } from './i18n.js?v=32';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -602,9 +602,9 @@ function transform(id, before, ch, evo, card) {
       evo ? sfx.evolve() : sfx.levelup();
       await sleep(280);
       const h = $('#xhero');
-      // 前後比對：升級前的樣子變成半透明、慢慢淡掉；升級後的樣子在同一個位置浮現（兩張用同一個鏡頭拍，大小才比得出來）
-      h.className = 'x-hero';
-      h.innerHTML = `<div class="x-old">${charSVG(id, before, { fit: 'form', cam: ch, pad: true })}</div><div class="x-new">${charSVG(id, ch, { fit: 'form', pad: true })}</div>`;
+      // 閃光後直接換成升級後的樣子：從小彈到正常大小、由亮變正常（升級前後用同一個鏡頭拍，大小比得出來）
+      h.className = 'x-hero reveal';
+      h.innerHTML = charSVG(id, ch, { fit: 'form', pad: true });
       confetti(evo ? 80 : 40);
       $('.x-title').textContent = evo ? t('evoDone') : `Lv.${ch.level}！`;
       const info = $('#xinfo');

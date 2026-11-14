@@ -1,7 +1,7 @@
 // 小一上 LV1（新加坡 P1 Term 1）：47 種題型。10 以內的數、10 以內加減、形狀、第幾個。
 // 規格裡要「寫、拖、劃掉、拼字」的題型都改成同一個概念的點選版。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, who, who2, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=31';
-import { items, pile, dots, grp, row, col, fig, emo, ncard, pic, seq, bigEq, tenFrame, bond, numLine, shape, solid, clock, bars, tallBars, lineup, svg, COLORS, SHAPES, BASIC, SOLIDS, cname, sname } from './vis.js?v=31';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, who, who2, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=32';
+import { items, pile, dots, grp, row, col, fig, emo, ncard, pic, seq, bigEq, tenFrame, bond, numLine, shape, solid, clock, bars, tallBars, lineup, svg, COLORS, SHAPES, BASIC, SOLIDS, cname, sname } from './vis.js?v=32';
 
 const T = { num: ['10 以內的數', 'Numbers to 10', '🔢'], add: ['加法', 'Addition', '➕'], sub: ['減法', 'Subtraction', '➖'], shape: ['形狀', 'Shapes', '🔺'], ord: ['第幾個', 'Ordinal numbers', '🏅'], bonus: ['加分題', 'Bonus', '⭐'] };
 const CK = Object.keys(COLORS), INK = '#2b2140';

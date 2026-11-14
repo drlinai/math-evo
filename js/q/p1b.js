@@ -1,7 +1,7 @@
 // 小一上 LV2（新加坡 P1 Term 2）：41 種題型。數到 100、加減到 20（湊十、從 10 減），第一次出現圖畫統計圖。
 // 每個題型只是「概念」：數字、東西、人名、主題每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, who, who2, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=31';
-import { items, pile, grp, row, col, fig, emo, ncard, label, pic, dots, seq, bigEq, tenFrame, bond, numLine, hgrid, blocks, pgraph, tally, table, twd, modelCmp, svg } from './vis.js?v=31';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, thing, things2, cnt, who, who2, THINGS, ANIMALS, FOODS, TOYS } from './core.js?v=32';
+import { items, pile, grp, row, col, fig, emo, ncard, label, pic, dots, seq, bigEq, tenFrame, bond, numLine, hgrid, blocks, pgraph, tally, table, twd, modelCmp, svg } from './vis.js?v=32';
 
 const T = { n20: ['20 以內的數', 'Numbers to 20', '🔢'], add: ['20 以內的加法', 'Addition within 20', '➕'], sub: ['20 以內的減法', 'Subtraction within 20', '➖'], story: ['應用題', 'Word problems', '📖'],
   graph: ['圖畫統計圖', 'Picture graphs', '📊'], n100: ['100 以內的數', 'Numbers to 100', '💯'], bonus: ['加分題', 'Bonus', '⭐'] };
