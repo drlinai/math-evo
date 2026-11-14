@@ -1,6 +1,6 @@
 // 圖片版美術：角色、怪物、升級配件都用 img/*.webp（由 tools/process_art.py 從 art_src 產生）
 // 對外介面與舊的 characters.js（程式畫的 SVG）相同，所以遊戲其他部分不用改。
-import { ART } from './art-meta.js?v=29';
+import { ART } from './art-meta.js?v=31';
 
 const AV = 2; // 圖片版本：換圖時 +1，避免瀏覽器用到舊圖
 export const src = (name) => `img/${name}.webp?a=${AV}`;
@@ -156,11 +156,9 @@ function camBox(id, form, up, fit) {
   const size = fit === 'form' ? Math.max((H + 90) * 1.3 + tall, (W + 70) * 1.3 + side * 0.6) : Math.max(Hpx + 80 + tall, Wpx + 70 + side);
   return `${(X - size / 2).toFixed(0)} ${(Y - size + 30).toFixed(0)} ${size.toFixed(0)} ${size.toFixed(0)}`;
 }
-// 主畫面的固定鏡頭（500×500）；角色長到快頂出畫面時，鏡頭稍微拉遠
-function homeBox(id, form, up) {
-  const F = FORMS[id][form], [sx, sy] = grow(up), size = Math.max(500, F.h * sy + 50, F.h * aspect(id + form) * sx + 40);
-  return `${(250 - size / 2).toFixed(0)} ${(500 - size).toFixed(0)} ${size.toFixed(0)} ${size.toFixed(0)}`;
-}
+// 畫布外圍多留的空間（每邊佔原本大小的比例）：翅膀、氣焰、夥伴超出取景框時照樣畫得出來，不會被切掉。
+//   只擴大畫布，不改鏡頭，所以角色大小不變（CSS 的 .char-svg.pad 把畫布放大成 1 + 2×PAD 倍、往外推 PAD）
+const PAD = 0.55;
 export function charSVG(id, ch, o = {}) {
   const uid = ++UID;
   const form = o.form ?? formOf(ch.level), up = o.up ?? ch.up ?? {};
@@ -170,10 +168,12 @@ export function charSVG(id, ch, o = {}) {
   const Hpx = H * sy, Wpx = W * sx, cy = Y - Hpx * 0.5;
   // 取景：fit=貼身（標題/選角/小頭像）；'form'=依型態取景看得出長大；否則固定鏡頭（主畫面）
   //   cam：用「另一個狀態」的取景框來拍（升級前後要疊在一起比對，鏡頭必須一樣）
-  const vb = o.fit ? camBox(id, o.cam ? formOf(o.cam.level) : form, o.cam ? o.cam.up || {} : up, o.fit) : homeBox(id, form, up);
+  // 主畫面是固定鏡頭（500×500）：角色變壯、長高就真的變大，不拉遠鏡頭
+  let vb = o.fit ? camBox(id, o.cam ? formOf(o.cam.level) : form, o.cam ? o.cam.up || {} : up, o.fit) : '0 0 500 500';
+  if (o.pad) { const [vx, vy, vs] = vb.split(' ').map(Number); vb = [vx - vs * PAD, vy - vs * PAD, vs * (1 + 2 * PAD), vs * (1 + 2 * PAD)].map((v) => v.toFixed(0)).join(' '); }
   const ax = (fx) => -W / 2 + fx * W, ay = (fy) => -H + fy * H;
   const [bx, by] = [ax(F.back[0]), ay(F.back[1])];
-  let s = `<svg viewBox="${vb}" class="char-svg" xmlns="http://www.w3.org/2000/svg" overflow="visible">`;
+  let s = `<svg viewBox="${vb}" class="char-svg${o.pad ? ' pad' : ''}" xmlns="http://www.w3.org/2000/svg" overflow="visible">`;
   s += kiOv(up.ki || 0, X, Y, Wpx, Hpx, uid);
   s += auraOv(up.aura || 0, X, cy, Hpx, uid);
   s += `<ellipse cx="${X}" cy="${Y + 2}" rx="${Wpx * 0.36}" ry="${Wpx * 0.055 + 6}" fill="rgba(0,0,0,.24)"/>`;

@@ -1,7 +1,7 @@
 // 小二下 LV4（新加坡 P2 Term 4）：41 種題型。公升、有比例的圖畫統計圖、平面圖形的型式、五種立體，最後總複習。
 // 每個題型只是「概念」：容器、主題、人名、顏色、數字每次都隨機換。
-import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, who } from './core.js?v=29';
-import { row, col, fig, emo, label, seq, bigEq, shape, solid, jug, glass, pgraph, tally, table, svg, COLORS, SOLIDS, cname, sname, solidName } from './vis.js?v=29';
+import { Q, def, L, pl, rnd, pick, shuffle, sample, range, chance, distinct, who } from './core.js?v=31';
+import { row, col, fig, emo, label, seq, bigEq, shape, solid, jug, glass, pgraph, tally, table, svg, COLORS, SOLIDS, cname, sname, solidName } from './vis.js?v=31';
 
 const T = { vol: ['容量', 'Volume', '🥛'], graph: ['圖畫統計圖', 'Picture graphs', '📊'], shape: ['平面圖形', '2D shapes', '🔺'], solid: ['立體', '3D shapes', '🧊'], review: ['總複習', 'Review', '🏁'], bonus: ['加分題', 'Bonus', '⭐'] };
 const INK = '#2b2140', CK = Object.keys(COLORS), SK = Object.keys(SOLIDS);

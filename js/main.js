@@ -1,8 +1,8 @@
-import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=29';
-import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=29';
-import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=29';
-import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=29';
-import { t, getLang, monsterName } from './i18n.js?v=29';
+import { state, load, save, CHAR_IDS, xpNeed, isEvoLevel, formName, drawCards, power, UPGRADES, upInfo, resetChar, chooseLang } from './state.js?v=31';
+import { charSVG, MONSTERS, BOSSES, monsterSVG, sceneSVG, battleScene, preloadArt } from './sprites.js?v=31';
+import { speak, stopSpeak, sfx, unlockAudio, toggleMusic, voiceInfo, resetVoiceProbe } from './audio.js?v=31';
+import { GRADES, ALL, gradeOf, progressOf, planMission, NEED } from './q/index.js?v=31';
+import { t, getLang, monsterName } from './i18n.js?v=31';
 
 const stage = document.getElementById('stage');
 const $ = (s) => stage.querySelector(s);
@@ -175,7 +175,7 @@ function showHome() {
       <div class="sub"><span>⚡ ${t('power')} <b>${power(ch)}</b></span><span>🌟 ${nextEvo}</span></div></div>
     <button class="gchip" id="gr">📚 ${t('gradeProg', gradeName(grade), progressOf(state.prog, grade.id).pct)}</button>
     <div class="badges">${badges}</div>
-    <div class="hero" id="hero">${charSVG(id, ch)}</div>
+    <div class="hero" id="hero">${charSVG(id, ch, { pad: true })}</div>
     <button class="bigbtn ${pending ? 'gold' : ''}" id="start">${pending ? t('levelup') : t('mission')}</button>`);
   $('#sw').onclick = () => { sfx.tap(); showSelect(); };
   $('#gr').onclick = () => { sfx.tap(); showTitle(); };
@@ -236,7 +236,7 @@ async function mission(w, chk) {
     <div class="prompt"><button class="rbtn spk" id="spk">🔊</button><div id="ptext"></div></div>
     <div class="qscene" id="qscene"></div>
     <div class="answers" id="answers"></div>
-    <div class="mini" id="mini">${charSVG(id, ch, { fit: true })}</div>
+    <div class="mini" id="mini">${charSVG(id, ch, { fit: true, pad: true })}</div>
     <div class="eq" id="eq"></div><div class="banner" id="banner"></div>`);
   $('#quit').onclick = () => { sfx.tap(); showHome(); };
 
@@ -291,7 +291,7 @@ function showDemo(n) {
         <button class="dbtn wide" id="dd">${t('demoD', demoD)}</button><button class="dbtn" id="dlang">🌐</button></div>
       <div class="prompt"><button class="rbtn spk" id="spk">🔊</button><div id="ptext"></div></div>
       <div class="qscene" id="qscene"></div><div class="answers" id="answers"></div>
-      <div class="mini" id="mini">${charSVG(id, state.chars[id], { fit: true })}</div><div class="eq" id="eq"></div><div class="banner" id="banner"></div>`);
+      <div class="mini" id="mini">${charSVG(id, state.chars[id], { fit: true, pad: true })}</div><div class="eq" id="eq"></div><div class="banner" id="banner"></div>`);
     $('#quit').onclick = () => { sfx.tap(); state.current && gradeOf(state.grade) ? showHome() : showTitle(); };
     $('#dprev').onclick = () => { sfx.tap(); showDemo(n - 1); };
     $('#dnext').onclick = () => { sfx.tap(); showDemo(n + 1); };
@@ -552,7 +552,7 @@ function battle(id, ch, evo) {
     screen('battle', `<div class="bg">${battleScene()}</div>
       <div class="b-title">${evo ? t('bossAppear', name) : t('appear', name)}</div>
       <div class="hpwrap"><span>${name}</span><div class="hpbar"><i id="hp"></i></div></div>
-      <div class="b-hero" id="bhero">${charSVG(id, ch, { fit: true })}</div>
+      <div class="b-hero" id="bhero">${charSVG(id, ch, { fit: true, pad: true })}</div>
       <div class="b-mon ${evo ? 'boss' : ''}" id="bmon">${monsterSVG(m, evo)}</div>
       <button class="bigbtn atk" id="atk">${t('attack')}</button>`);
     const hero = $('#bhero'), mon = $('#bmon'), btn = $('#atk');
@@ -592,7 +592,7 @@ function transform(id, before, ch, evo, card) {
     const name = formName(id, ch.level);
     screen('transform', `<div class="bg dim2">${sceneSVG(id)}</div><div class="rays ${evo ? 'big' : ''}"></div>
       <div class="x-title">${evo ? t('evolving') : t('rising')}</div>
-      <div class="x-hero charging ${evo ? 'evo' : ''}" id="xhero">${charSVG(id, before, { fit: 'form', cam: ch })}</div>
+      <div class="x-hero charging ${evo ? 'evo' : ''}" id="xhero">${charSVG(id, before, { fit: 'form', cam: ch, pad: true })}</div>
       <div class="flash" id="flash"></div>
       <div class="x-info" id="xinfo"></div>`);
     sfx.charge();
@@ -604,7 +604,7 @@ function transform(id, before, ch, evo, card) {
       const h = $('#xhero');
       // 前後比對：升級前的樣子變成半透明、慢慢淡掉；升級後的樣子在同一個位置浮現（兩張用同一個鏡頭拍，大小才比得出來）
       h.className = 'x-hero';
-      h.innerHTML = `<div class="x-old">${charSVG(id, before, { fit: 'form', cam: ch })}</div><div class="x-new">${charSVG(id, ch, { fit: 'form' })}</div>`;
+      h.innerHTML = `<div class="x-old">${charSVG(id, before, { fit: 'form', cam: ch, pad: true })}</div><div class="x-new">${charSVG(id, ch, { fit: 'form', pad: true })}</div>`;
       confetti(evo ? 80 : 40);
       $('.x-title').textContent = evo ? t('evoDone') : `Lv.${ch.level}！`;
       const info = $('#xinfo');
@@ -643,7 +643,7 @@ window.__game = { state, save, showHome, showSelect, showTitle, chooseLang, leve
     const tp = gradeOf(gid).types[n - 1];
     screen('mission', `<div class="bg dim">${sceneSVG(state.current || 'dino')}</div><div class="mtop"><button class="rbtn" id="quit">🏠</button><div class="stages"></div><div class="pips" id="pips"></div></div>
       <div class="prompt"><button class="rbtn spk" id="spk">🔊</button><div id="ptext"></div></div><div class="qscene" id="qscene"></div><div class="answers" id="answers"></div>
-      <div class="mini" id="mini">${charSVG(state.current || 'dino', cur() || { level: 1, up: {} }, { fit: true })}</div><div class="eq" id="eq"></div><div class="banner" id="banner"></div>`);
+      <div class="mini" id="mini">${charSVG(state.current || 'dino', cur() || { level: 1, up: {} }, { fit: true, pad: true })}</div><div class="eq" id="eq"></div><div class="banner" id="banner"></div>`);
     $('#quit').onclick = showHome;
     for (;;) await w(ask(tp.gen(d)));
   }) };
